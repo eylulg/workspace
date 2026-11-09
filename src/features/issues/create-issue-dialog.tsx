@@ -163,6 +163,7 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
                 onChange={handleTitleChange}
                 onKeyDown={handleFieldKeyDown}
                 isRequired
+                validationBehavior="aria"
                 autoFocus
                 isInvalid={error !== null}
                 hint={error ?? undefined}
