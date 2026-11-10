@@ -210,8 +210,8 @@ function TitleField({ value, onSave }: { value: string; onSave: (title: string) 
     const t = useTranslations("issue");
     const [title, setTitle] = useState(value);
 
-    function handleChange(event: ChangeEvent<HTMLInputElement>) {
-        setTitle(event.target.value);
+    function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
+        setTitle(event.target.value.replace(/\s*\n\s*/g, " "));
     }
 
     function handleBlur() {
@@ -220,8 +220,11 @@ function TitleField({ value, onSave }: { value: string; onSave: (title: string) 
         else if (next !== value) onSave(next);
     }
 
-    function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-        if (event.key === "Enter") event.currentTarget.blur();
+    function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            event.currentTarget.blur();
+        }
         if (event.key === "Escape") {
             setTitle(value);
             event.currentTarget.blur();
@@ -233,14 +236,15 @@ function TitleField({ value, onSave }: { value: string; onSave: (title: string) 
             <label htmlFor="issue-title-input" className="sr-only">
                 {t("titleLabel")}
             </label>
-            <input
+            <textarea
                 id="issue-title-input"
+                rows={1}
                 value={title}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
                 maxLength={200}
-                className="-mx-2 rounded-md bg-transparent px-2 py-1 font-display text-2xl font-semibold text-primary outline-focus hover:bg-hover focus-visible:outline-2"
+                className="-mx-2 field-sizing-content w-[calc(100%+1rem)] resize-none rounded-md bg-transparent px-2 py-1 font-display text-2xl font-semibold text-primary outline-focus hover:bg-hover focus-visible:outline-2"
             />
         </>
     );

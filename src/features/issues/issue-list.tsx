@@ -14,6 +14,10 @@ import { LabelDot, PriorityIcon, StatusIcon } from "./issue-icons";
 import { MemberAvatar } from "./member-avatar";
 import { AssigneeMenu, PriorityMenu, StatusMenu } from "./property-menus";
 
+// Phone rows give the space to the title: tight cell padding and a title that wraps onto a second line.
+const TIGHT = "px-1! sm:px-cell-x!";
+const TITLE_CELL = "w-full max-w-0 px-1! sm:px-cell-x!";
+
 interface ListProps {
     groups: IssueGroup[];
     grouping: Grouping;
@@ -64,18 +68,18 @@ function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProp
 
     return (
         <Row id={issue.id} data-issue-row data-issue-id={issue.id}>
-            <Cell>
+            <Cell className={TIGHT}>
                 <PriorityMenu compact value={issue.priority} onChange={handlePriority} />
             </Cell>
             <Cell className="hidden whitespace-nowrap text-tertiary tabular-nums sm:table-cell">{issue.identifier}</Cell>
-            <Cell>
+            <Cell className={TIGHT}>
                 <StatusMenu compact value={issue.status} onChange={handleStatus} />
             </Cell>
-            <Cell className="w-full max-w-0">
+            <Cell className={TITLE_CELL}>
                 <Link
                     href={`/issue/${issue.identifier}`}
                     data-issue-link
-                    className="block truncate rounded-sm font-medium text-primary outline-focus hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    className="line-clamp-2 rounded-sm font-medium wrap-anywhere text-primary outline-focus hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 sm:line-clamp-none sm:block sm:truncate"
                 >
                     <span className="sr-only sm:hidden">{issue.identifier} </span>
                     {issue.title}
@@ -96,7 +100,7 @@ function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProp
             <Cell className="hidden sm:table-cell">
                 <DueDate dueDate={issue.dueDate} status={issue.status} />
             </Cell>
-            <Cell>
+            <Cell className={TIGHT}>
                 <AssigneeMenu compact value={issue.assigneeId} onChange={handleAssignee} />
             </Cell>
         </Row>
