@@ -8,8 +8,8 @@ import { Textarea } from "@eylulg/ui/textarea";
 import { useToast } from "@eylulg/ui/toast";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type ChangeEvent, type FormEvent, type KeyboardEvent, useState, useTransition } from "react";
-import type { Key } from "react-aria-components";
+import { type ChangeEvent, type FormEvent, useState, useTransition } from "react";
+import type { Key, KeyboardEvent } from "react-aria-components";
 import { track } from "@/features/analytics/analytics";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -128,9 +128,13 @@ function CreateIssueForm({ teamId, onDone }: { teamId: string; onDone: () => voi
         submit();
     }
 
-    // Cmd or Ctrl + Enter submits from the text fields, like in Linear.
+    // Cmd or Ctrl + Enter submits from the text fields, like in Linear. React Aria stops every other key
+    // at the field, so Escape would never reach the dialog without continuePropagation.
     function handleFieldKeyDown(event: KeyboardEvent) {
-        if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) return;
+        if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
+            event.continuePropagation();
+            return;
+        }
         event.preventDefault();
         submit();
     }
