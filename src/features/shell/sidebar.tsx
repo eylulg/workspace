@@ -2,11 +2,15 @@
 
 import { Button } from "@eylulg/ui/button";
 import { SidebarNav, type SidebarNavSection } from "@eylulg/ui/chrome";
-import { Bookmark, Columns3, Folder, Hash, Keyboard, List, RefreshCcw, Tag } from "lucide-react";
+import { IconButton } from "@eylulg/ui/icon-button";
+import { useToast } from "@eylulg/ui/toast";
+import { Bookmark, Columns3, Folder, Hash, Keyboard, List, RefreshCcw, Tag, Trash2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useTransition } from "react";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { Link, usePathname } from "@/i18n/navigation";
+import { deleteView } from "@/server/actions/views";
 import { LanguageSwitcher } from "./language-switcher";
 import { useResetDemo } from "./use-reset-demo";
 
@@ -17,6 +21,8 @@ export function Sidebar() {
     const params = useSearchParams();
     const { data, setHelpOpen } = useWorkspace();
     const resetDemo = useResetDemo();
+    const { toast } = useToast();
+    const [, startTransition] = useTransition();
     const query = params.toString();
 
     function isCurrent(href: string) {
@@ -24,6 +30,19 @@ export function Sidebar() {
         if (path !== pathname) return false;
         if (path !== "/issues") return true;
         return search === query || (!search && !query.includes("="));
+    }
+
+    function deleteSavedView(view: { id: string; name: string }) {
+        return () => {
+            startTransition(async () => {
+                const result = await deleteView({ id: view.id });
+                toast(
+                    result.ok
+                        ? { title: t("views.deleted", { name: view.name }), variant: "success" }
+                        : { title: t(`errors.${result.error}`), variant: "error" },
+                );
+            });
+        };
     }
 
     function handleHelp() {
@@ -58,6 +77,15 @@ export function Sidebar() {
                           href: `/issues?${view.query}`,
                           label: view.name,
                           icon: <Bookmark aria-hidden="true" />,
+                          action: (
+                              <IconButton
+                                  icon={Trash2}
+                                  variant="tertiary"
+                                  size="sm"
+                                  aria-label={t("views.delete", { name: view.name })}
+                                  onPress={deleteSavedView(view)}
+                              />
+                          ),
                       })),
                   },
               ]

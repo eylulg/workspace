@@ -4,7 +4,6 @@ import { useToast } from "@eylulg/ui/toast";
 import { useTranslations } from "next-intl";
 import { startTransition as startGlobalTransition, useTransition } from "react";
 import { track } from "@/features/analytics/analytics";
-import { useActionToast } from "@/features/toast/use-action-toast";
 import type { ActionResult } from "@/lib/action-result";
 import type { IssueSummary, Status } from "@/lib/domain";
 import type { IssuePatch, OptimisticAction } from "@/lib/optimistic";
@@ -21,7 +20,6 @@ type Apply = (action: OptimisticAction) => void;
 export function useIssueMutations(apply: Apply | null) {
     const t = useTranslations();
     const { toast } = useToast();
-    const showActionToast = useActionToast();
     const [isPending, startTransition] = useTransition();
 
     const report = (result: ActionResult<unknown>) => {
@@ -76,9 +74,10 @@ export function useIssueMutations(apply: Apply | null) {
             () => deleteIssue({ id: issue.id }),
             () => {
                 onDeleted?.();
-                showActionToast({
+                toast({
                     title: t("issue.deleted", { identifier: issue.identifier }),
-                    action: { label: t("common.undo"), onAction: () => restore(issue) },
+                    variant: "success",
+                    action: { label: t("common.undo"), onPress: () => restore(issue) },
                 });
             },
         );

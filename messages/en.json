@@ -29,9 +29,34 @@
         "resetDemoDone": "The demo workspace was reset.",
         "demoNotice": "This is a shared demo. Anyone can edit it, and it resets every night.",
         "language": "Language",
-        "theme": "Theme",
-        "demoControls": "Demo controls",
-        "projectSwitcher": "Other projects"
+        "demoControls": "Demo controls"
+    },
+    "chrome": {
+        "topNav": {
+            "openMenu": "Open menu",
+            "closeMenu": "Close menu"
+        },
+        "themeToggle": {
+            "ariaLabel": "Colour theme",
+            "light": "Light theme",
+            "dark": "Dark theme",
+            "system": "System theme"
+        },
+        "projectSwitcher": {
+            "label": "Other projects",
+            "heading": "Eylül Güneş's projects",
+            "youAreHere": "You are here",
+            "sourceCode": "(source code)"
+        },
+        "siteFooter": {
+            "intro": "Part of Eylül Güneş's projects",
+            "projectsNav": "Projects",
+            "source": "(source)",
+            "profilesNav": "Profiles",
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "builtWith": "Built with @eylulg/ui"
+        }
     },
     "status": {
         "backlog": "Backlog",
@@ -180,6 +205,7 @@
     },
     "palette": {
         "label": "Command palette",
+        "searchLabel": "Search commands and issues",
         "placeholder": "Type a command or search issues",
         "statusPlaceholder": "Set status of {identifier}",
         "priorityPlaceholder": "Set priority of {identifier}",
@@ -208,8 +234,7 @@
         "changeAssignee": "Change assignee",
         "setStatusFor": "Status of {identifier}",
         "setPriorityFor": "Priority of {identifier}",
-        "assign": "Assignee of {identifier}",
-        "results": "Results"
+        "assign": "Assignee of {identifier}"
     },
     "shortcuts": {
         "title": "Keyboard shortcuts",

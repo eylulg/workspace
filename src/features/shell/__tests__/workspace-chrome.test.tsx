@@ -76,7 +76,7 @@ describe("keyboard shortcuts", () => {
 
         await user.hover(screen.getByRole("link", { name: /Date picker opens off screen/ }));
         await user.keyboard("s");
-        await user.click(await screen.findByRole("option", { name: /In review/ }));
+        await user.click(await screen.findByRole("menuitem", { name: /In review/ }));
 
         expect(actions.updateIssue).toHaveBeenCalledWith({ id: issue.id, patch: { status: "in_review" } });
         expect(await screen.findByRole("button", { name: "Status: In review" })).toBeInTheDocument();

@@ -1,6 +1,5 @@
 import { themeInitScript } from "@eylulg/ui/chrome";
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { NextIntlClientProvider } from "next-intl";
@@ -10,8 +9,6 @@ import { ShellFallback, WorkspaceShell } from "@/features/shell/workspace-shell"
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/providers/providers";
 import "@/styles/globals.css";
-
-const inter = Inter({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-inter" });
 
 export function generateStaticParams() {
     return routing.locales.map((locale) => ({ locale }));
@@ -40,7 +37,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
     setRequestLocale(locale);
 
     return (
-        <html lang={locale} className={inter.variable} suppressHydrationWarning>
+        <html lang={locale} suppressHydrationWarning>
             <head>
                 <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
             </head>

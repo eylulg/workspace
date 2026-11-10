@@ -5,12 +5,12 @@ import { Dialog } from "@eylulg/ui/dialog";
 import { Input } from "@eylulg/ui/input";
 import { Select, SelectItem } from "@eylulg/ui/select";
 import { Textarea } from "@eylulg/ui/textarea";
+import { useToast } from "@eylulg/ui/toast";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type ChangeEvent, type FormEvent, type KeyboardEvent, useState, useTransition } from "react";
 import type { Key } from "react-aria-components";
 import { track } from "@/features/analytics/analytics";
-import { useActionToast } from "@/features/toast/use-action-toast";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useRouter } from "@/i18n/navigation";
@@ -18,7 +18,7 @@ import type { IssueSummary } from "@/lib/domain";
 import { createIssue } from "@/server/actions/issues";
 import { AssigneeMenu, LabelsMenu, PriorityMenu, ProjectMenu, StatusMenu } from "./property-menus";
 
-type Draft = Pick<IssueSummary, "teamId" | "title" | "status" | "priority" | "assigneeId" | "projectId" | "labelIds"> & {
+type Draft = Pick<IssueSummary, "title" | "status" | "priority" | "assigneeId" | "projectId" | "labelIds"> & {
     description: string;
     dueDate: string;
 };
@@ -28,29 +28,56 @@ export const DATE_INPUT_CLASS =
 
 export function CreateIssueDialog() {
     const t = useTranslations();
-    const { createOpen, setCreateOpen } = useWorkspace();
+    const params = useSearchParams();
+    const { data, createOpen, setCreateOpen } = useWorkspace();
+    const [pickedTeamId, setPickedTeamId] = useState<string | null>(null);
+    const defaultTeam = data.teams.find((team) => team.key === params.get("team")?.toUpperCase()) ?? data.teams[0];
+    const teamId = pickedTeamId ?? defaultTeam?.id ?? "";
 
-    function handleDone() {
-        setCreateOpen(false);
+    function handleOpenChange(open: boolean) {
+        setCreateOpen(open);
+        if (!open) setPickedTeamId(null);
     }
 
+    function handleDone() {
+        handleOpenChange(false);
+    }
+
+    function handleTeamChange(key: Key | null) {
+        if (key !== null) setPickedTeamId(String(key));
+    }
+
+    const teamSelect = (
+        <Select aria-label={t("create.team")} className="w-44" selectedKey={teamId} onSelectionChange={handleTeamChange} items={data.teams}>
+            {(team) => (
+                <SelectItem id={team.id} textValue={team.name} description={team.key}>
+                    {team.name}
+                </SelectItem>
+            )}
+        </Select>
+    );
+
     return (
-        <Dialog isOpen={createOpen} onOpenChange={setCreateOpen} size="lg" title={t("create.title")} closeLabel={t("common.close")}>
-            {createOpen ? <CreateIssueForm onDone={handleDone} /> : null}
+        <Dialog
+            isOpen={createOpen}
+            onOpenChange={handleOpenChange}
+            size="lg"
+            title={t("create.title")}
+            closeLabel={t("common.close")}
+            headerActions={teamSelect}
+        >
+            {createOpen ? <CreateIssueForm teamId={teamId} onDone={handleDone} /> : null}
         </Dialog>
     );
 }
 
-function CreateIssueForm({ onDone }: { onDone: () => void }) {
+function CreateIssueForm({ teamId, onDone }: { teamId: string; onDone: () => void }) {
     const t = useTranslations();
     const router = useRouter();
-    const params = useSearchParams();
-    const showActionToast = useActionToast();
+    const { toast } = useToast();
     const { data } = useWorkspace();
     const mounted = useIsMounted();
-    const defaultTeam = data.teams.find((team) => team.key === params.get("team")?.toUpperCase()) ?? data.teams[0];
     const [draft, setDraft] = useState<Draft>({
-        teamId: defaultTeam?.id ?? "",
         title: "",
         description: "",
         status: "todo",
@@ -63,6 +90,9 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
+    // A project chosen for another team no longer applies after the team changes.
+    const projectId = data.projects.some((project) => project.id === draft.projectId && project.teamId === teamId) ? draft.projectId : null;
+
     function set<K extends keyof Draft>(key: K, value: Draft[K]) {
         setDraft((current) => ({ ...current, [key]: value }));
     }
@@ -73,16 +103,17 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
             return;
         }
         startTransition(async () => {
-            const result = await createIssue({ ...draft, dueDate: draft.dueDate || null });
+            const result = await createIssue({ ...draft, teamId, projectId, dueDate: draft.dueDate || null });
             if (!result.ok) {
                 if (mounted.current) setError(t(`errors.${result.error}`));
                 return;
             }
             const { identifier } = result.data;
-            track("issue_created", { teamId: draft.teamId, priority: draft.priority, hasProject: draft.projectId !== null });
-            showActionToast({
+            track("issue_created", { teamId, priority: draft.priority, hasProject: projectId !== null });
+            toast({
                 title: t("create.created", { identifier }),
-                action: { label: t("create.view"), onAction: () => router.push(`/issue/${identifier}`) },
+                variant: "success",
+                action: { label: t("create.view"), onPress: () => router.push(`/issue/${identifier}`) },
             });
             onDone();
         });
@@ -98,11 +129,6 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
         if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) return;
         event.preventDefault();
         submit();
-    }
-
-    function handleTeamChange(key: Key | null) {
-        if (key === null) return;
-        setDraft((current) => ({ ...current, teamId: String(key), projectId: null }));
     }
 
     function handleTitleChange(value: string) {
@@ -140,20 +166,6 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
 
     return (
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <Select
-                label={t("create.team")}
-                className="w-full sm:w-48"
-                selectedKey={draft.teamId}
-                onSelectionChange={handleTeamChange}
-                items={data.teams}
-            >
-                {(team) => (
-                    <SelectItem id={team.id} textValue={team.name}>
-                        {team.name} <span className="text-tertiary">{team.key}</span>
-                    </SelectItem>
-                )}
-            </Select>
-
             <Input
                 label={t("create.titleLabel")}
                 placeholder={t("create.titlePlaceholder")}
@@ -183,7 +195,7 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
                     <StatusMenu value={draft.status} onChange={handleStatusChange} />
                     <PriorityMenu value={draft.priority} onChange={handlePriorityChange} />
                     <AssigneeMenu value={draft.assigneeId} onChange={handleAssigneeChange} />
-                    <ProjectMenu teamId={draft.teamId} value={draft.projectId} onChange={handleProjectChange} />
+                    <ProjectMenu teamId={teamId} value={projectId} onChange={handleProjectChange} />
                     <LabelsMenu value={draft.labelIds} onChange={handleLabelsChange} />
                     <label className="flex h-control-sm items-center gap-2 rounded-md px-2 text-sm text-secondary">
                         <span>{t("issue.dueDate")}</span>

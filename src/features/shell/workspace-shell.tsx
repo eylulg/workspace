@@ -12,6 +12,7 @@ import { WorkspaceChrome } from "./workspace-chrome";
 /** Server component: loads the workspace once per request and hands it to the client chrome. */
 export async function WorkspaceShell({ children }: { children: ReactNode }) {
     const t = await getTranslations("common");
+    const tf = await getTranslations("chrome.siteFooter");
     const viewer = await getViewer();
     const data = await getWorkspaceData(viewer.workspaceId, viewer.memberId);
     const issues = await getWorkspaceIssues(data);
@@ -38,7 +39,20 @@ export async function WorkspaceShell({ children }: { children: ReactNode }) {
                             <Sidebar />
                         </Suspense>
                     }
-                    footer={<SiteFooter currentId="workspace" />}
+                    footer={
+                        <SiteFooter
+                            currentId="workspace"
+                            labels={{
+                                intro: tf("intro"),
+                                projectsNav: tf("projectsNav"),
+                                source: tf("source"),
+                                profilesNav: tf("profilesNav"),
+                                github: tf("github"),
+                                linkedin: tf("linkedin"),
+                                builtWith: tf("builtWith"),
+                            }}
+                        />
+                    }
                     skipLinkLabel={t("skipToContent")}
                 >
                     {children}

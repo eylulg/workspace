@@ -29,9 +29,34 @@
         "resetDemoDone": "Demo çalışma alanı sıfırlandı.",
         "demoNotice": "Bu ortak bir demo. Herkes düzenleyebilir ve her gece sıfırlanır.",
         "language": "Dil",
-        "theme": "Tema",
-        "demoControls": "Demo denetimleri",
-        "projectSwitcher": "Diğer projeler"
+        "demoControls": "Demo denetimleri"
+    },
+    "chrome": {
+        "topNav": {
+            "openMenu": "Menüyü aç",
+            "closeMenu": "Menüyü kapat"
+        },
+        "themeToggle": {
+            "ariaLabel": "Renk teması",
+            "light": "Açık tema",
+            "dark": "Koyu tema",
+            "system": "Sistem teması"
+        },
+        "projectSwitcher": {
+            "label": "Diğer projeler",
+            "heading": "Eylül Güneş'in projeleri",
+            "youAreHere": "Buradasınız",
+            "sourceCode": "(kaynak kodu)"
+        },
+        "siteFooter": {
+            "intro": "Eylül Güneş'in projelerinden biri",
+            "projectsNav": "Projeler",
+            "source": "(kaynak)",
+            "profilesNav": "Profiller",
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "builtWith": "@eylulg/ui ile geliştirildi"
+        }
     },
     "status": {
         "backlog": "Bekleyen",
@@ -180,6 +205,7 @@
     },
     "palette": {
         "label": "Komut paleti",
+        "searchLabel": "Komutlarda ve kayıtlarda ara",
         "placeholder": "Bir komut yazın ya da kayıtlarda arayın",
         "statusPlaceholder": "{identifier} için durum seçin",
         "priorityPlaceholder": "{identifier} için öncelik seçin",
@@ -208,8 +234,7 @@
         "changeAssignee": "Atanan kişiyi değiştir",
         "setStatusFor": "{identifier} durumu",
         "setPriorityFor": "{identifier} önceliği",
-        "assign": "{identifier} için atanan",
-        "results": "Sonuçlar"
+        "assign": "{identifier} için atanan"
     },
     "shortcuts": {
         "title": "Klavye kısayolları",

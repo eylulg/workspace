@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@eylulg/ui/button";
+import { SegmentedControl, SegmentedControlItem } from "@eylulg/ui/segmented-control";
 import { Textarea } from "@eylulg/ui/textarea";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useId, useState } from "react";
-import { SegmentedControl } from "@/components/segmented-control";
+import type { Key } from "react-aria-components";
 import { Markdown } from "./markdown";
 
 type Mode = "write" | "preview";
@@ -33,6 +34,10 @@ export function DescriptionEditor({ value, onSave }: { value: string; onSave: (v
         save();
     }
 
+    function handleModeChange(key: Key) {
+        setMode(key === "preview" ? "preview" : "write");
+    }
+
     function handleDiscard() {
         setDraft(value);
     }
@@ -43,15 +48,10 @@ export function DescriptionEditor({ value, onSave }: { value: string; onSave: (v
                 <h2 id={headingId} className="text-sm font-semibold text-primary">
                     {t("description")}
                 </h2>
-                <SegmentedControl
-                    label={t("descriptionMode")}
-                    value={mode}
-                    onChange={setMode}
-                    options={[
-                        { id: "write", label: tc("write") },
-                        { id: "preview", label: tc("preview") },
-                    ]}
-                />
+                <SegmentedControl aria-label={t("descriptionMode")} size="sm" selectedKey={mode} onSelectionChange={handleModeChange}>
+                    <SegmentedControlItem id="write">{tc("write")}</SegmentedControlItem>
+                    <SegmentedControlItem id="preview">{tc("preview")}</SegmentedControlItem>
+                </SegmentedControl>
             </div>
             {mode === "write" ? (
                 <Textarea
@@ -61,7 +61,7 @@ export function DescriptionEditor({ value, onSave }: { value: string; onSave: (v
                     rows={10}
                     placeholder={t("descriptionPlaceholder")}
                     hint={t("markdownHint")}
-                    textareaClassName="font-mono"
+                    font="data"
                     onKeyDown={handleKeyDown}
                 />
             ) : draft.trim() ? (

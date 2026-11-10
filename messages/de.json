@@ -29,9 +29,34 @@
         "resetDemoDone": "Der Demo Workspace wurde zurückgesetzt.",
         "demoNotice": "Dies ist eine geteilte Demo. Alle können sie bearbeiten, und sie wird jede Nacht zurückgesetzt.",
         "language": "Sprache",
-        "theme": "Design",
-        "demoControls": "Demo-Steuerung",
-        "projectSwitcher": "Weitere Projekte"
+        "demoControls": "Demo-Steuerung"
+    },
+    "chrome": {
+        "topNav": {
+            "openMenu": "Menü öffnen",
+            "closeMenu": "Menü schließen"
+        },
+        "themeToggle": {
+            "ariaLabel": "Farbschema",
+            "light": "Helles Design",
+            "dark": "Dunkles Design",
+            "system": "Systemdesign"
+        },
+        "projectSwitcher": {
+            "label": "Weitere Projekte",
+            "heading": "Projekte von Eylül Güneş",
+            "youAreHere": "Sie sind hier",
+            "sourceCode": "(Quellcode)"
+        },
+        "siteFooter": {
+            "intro": "Teil der Projekte von Eylül Güneş",
+            "projectsNav": "Projekte",
+            "source": "(Quellcode)",
+            "profilesNav": "Profile",
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "builtWith": "Gebaut mit @eylulg/ui"
+        }
     },
     "status": {
         "backlog": "Backlog",
@@ -180,6 +205,7 @@
     },
     "palette": {
         "label": "Befehlspalette",
+        "searchLabel": "Befehle und Vorgänge durchsuchen",
         "placeholder": "Befehl eingeben oder Vorgänge suchen",
         "statusPlaceholder": "Status für {identifier} wählen",
         "priorityPlaceholder": "Priorität für {identifier} wählen",
@@ -208,8 +234,7 @@
         "changeAssignee": "Zuständigkeit ändern",
         "setStatusFor": "Status von {identifier}",
         "setPriorityFor": "Priorität von {identifier}",
-        "assign": "Zuständig für {identifier}",
-        "results": "Ergebnisse"
+        "assign": "Zuständig für {identifier}"
     },
     "shortcuts": {
         "title": "Tastenkürzel",

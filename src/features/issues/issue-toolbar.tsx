@@ -3,13 +3,12 @@
 import { Button } from "@eylulg/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSection } from "@eylulg/ui/dropdown-menu";
 import { Input } from "@eylulg/ui/input";
+import { SegmentedControl, SegmentedControlItem } from "@eylulg/ui/segmented-control";
 import { Tag, TagGroup } from "@eylulg/ui/tag";
-import { useToast } from "@eylulg/ui/toast";
-import { Columns3, List, ListFilter, Search, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Columns3, List, ListFilter, Search, SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type ReactNode, startTransition, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { Key, Selection } from "react-aria-components";
-import { SegmentedControl } from "@/components/segmented-control";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { PRIORITIES, STATUSES } from "@/lib/domain";
 import {
@@ -21,7 +20,6 @@ import {
     parseIssueQuery,
     serializeIssueQuery,
 } from "@/lib/issue-query";
-import { deleteView } from "@/server/actions/views";
 import { LabelDot, PriorityIcon, StatusIcon } from "./issue-icons";
 import { MemberAvatar } from "./member-avatar";
 import { SaveViewDialog } from "./save-view-dialog";
@@ -59,7 +57,6 @@ function selectedSuffix(keys: Selection, prefix: string): string | null {
 
 export function IssueToolbar({ query, onChange }: ToolbarProps) {
     const t = useTranslations();
-    const { toast } = useToast();
     const { data } = useWorkspace();
     const [search, setSearch] = useState(query.q);
     const [saveOpen, setSaveOpen] = useState(false);
@@ -81,8 +78,7 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
             ...data.projects.map((project) => ({ id: project.id, label: project.name, icon: null })),
         ],
     };
-    const currentQuery = serializeIssueQuery(query);
-    const activeView = data.savedViews.find((view) => view.query === currentQuery);
+    const isSavedView = data.savedViews.some((view) => view.query === serializeIssueQuery(query));
     const chips: Chip[] = FILTER_KEYS.flatMap((key) =>
         query[key].map((value) => {
             const option = filterOptions[key].find((item) => item.id === String(value));
@@ -97,8 +93,8 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
         return () => window.clearTimeout(timer);
     }, [search, query.q, onChange]);
 
-    function handleViewChange(view: IssueQuery["view"]) {
-        onChange({ view });
+    function handleViewChange(key: Key) {
+        onChange({ view: key === "board" ? "board" : "list" });
     }
 
     function handleFilterChange(key: FilterKey, keys: Selection) {
@@ -127,19 +123,6 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
         }
     }
 
-    function handleDeleteView() {
-        if (!activeView) return;
-        const view = activeView;
-        startTransition(async () => {
-            const result = await deleteView({ id: view.id });
-            toast(
-                result.ok
-                    ? { title: t("views.deleted", { name: view.name }), variant: "success" }
-                    : { title: t(`errors.${result.error}`), variant: "error" },
-            );
-        });
-    }
-
     function handleClear() {
         setSearch("");
         onChange(CLEARED_FILTERS);
@@ -152,15 +135,14 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
     return (
         <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-                <SegmentedControl
-                    label={t("issues.view")}
-                    value={query.view}
-                    onChange={handleViewChange}
-                    options={[
-                        { id: "list", label: t("issues.list"), icon: List },
-                        { id: "board", label: t("issues.board"), icon: Columns3 },
-                    ]}
-                />
+                <SegmentedControl aria-label={t("issues.view")} size="sm" selectedKey={query.view} onSelectionChange={handleViewChange}>
+                    <SegmentedControlItem id="list" icon={List}>
+                        {t("issues.list")}
+                    </SegmentedControlItem>
+                    <SegmentedControlItem id="board" icon={Columns3}>
+                        {t("issues.board")}
+                    </SegmentedControlItem>
+                </SegmentedControl>
 
                 <DropdownMenu>
                     <Button variant="secondary" size="sm" iconLeading={ListFilter}>
@@ -231,11 +213,7 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
                     className="min-w-0 flex-1 basis-48 sm:max-w-72"
                 />
 
-                {activeView ? (
-                    <Button size="sm" variant="secondary" iconLeading={Trash2} onPress={handleDeleteView} className="ml-auto">
-                        {t("views.delete", { name: activeView.name })}
-                    </Button>
-                ) : (
+                {isSavedView ? null : (
                     <Button size="sm" variant="secondary" onPress={handleOpenSave} className="ml-auto">
                         {t("issues.saveView")}
                     </Button>

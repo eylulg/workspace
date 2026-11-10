@@ -15,7 +15,7 @@ afterEach(() => {
     router.reset();
 });
 
-// jsdom does not implement these browser APIs that React Aria, cmdk and next-themes use.
+// jsdom does not implement these browser APIs that React Aria use.
 Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: (query: string) => ({
