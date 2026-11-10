@@ -10,6 +10,7 @@ const root = path.join(import.meta.dirname, "..");
 const nextConfig: NextConfig = {
     outputFileTracingRoot: root,
     cacheComponents: true,
+    experimental: { globalNotFound: true },
     partialPrefetching: true,
     // PGlite ships a WebAssembly build of Postgres that must be loaded from node_modules at runtime.
     serverExternalPackages: ["@electric-sql/pglite"],
