@@ -6,7 +6,7 @@ import { seedDemoWorkspace } from "./db/seed";
 const PREFIX = "visitor-";
 
 /** A visitor's workspace is a private copy of the demo, thrown away and rebuilt after this long. */
-export const VISITOR_TTL_MS = 24 * 60 * 60 * 1000;
+const VISITOR_TTL_MS = 24 * 60 * 60 * 1000;
 
 export const visitorSlug = (sessionId: string) => `${PREFIX}${sessionId}`;
 
