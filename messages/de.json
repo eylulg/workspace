@@ -281,6 +281,19 @@
         "created": "Label {name} erstellt",
         "updated": "Label {name} aktualisiert",
         "deleted": "Label {name} gelöscht",
+        "submitCreate": "Label erstellen",
+        "colorNames": {
+            "0": "Rot",
+            "1": "Orange",
+            "2": "Bernstein",
+            "3": "Grün",
+            "4": "Türkis",
+            "5": "Blau",
+            "6": "Indigo",
+            "7": "Violett",
+            "8": "Rosa",
+            "9": "Grau"
+        },
         "confirmDelete": "Label löschen"
     },
     "errors": {

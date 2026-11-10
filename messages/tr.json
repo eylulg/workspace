@@ -281,6 +281,19 @@
         "created": "{name} etiketi oluşturuldu",
         "updated": "{name} etiketi güncellendi",
         "deleted": "{name} etiketi silindi",
+        "submitCreate": "Etiket oluştur",
+        "colorNames": {
+            "0": "Kırmızı",
+            "1": "Turuncu",
+            "2": "Kehribar",
+            "3": "Yeşil",
+            "4": "Turkuaz",
+            "5": "Mavi",
+            "6": "Çivit",
+            "7": "Mor",
+            "8": "Pembe",
+            "9": "Gri"
+        },
         "confirmDelete": "Etiketi sil"
     },
     "errors": {

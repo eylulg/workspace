@@ -20,15 +20,16 @@ import { LABEL_COLORS, type Label } from "@/lib/domain";
 import { createLabel, deleteLabel, updateLabel } from "@/server/actions/labels";
 
 function ColorPicker({ value, onChange, label }: { value: string; onChange: (color: string) => void; label: string }) {
+    const t = useTranslations("labels.colorNames");
     return (
         <AriaRadioGroup value={value} onChange={onChange} orientation="horizontal" className="flex flex-col gap-1.5">
             <AriaLabel className="text-sm font-medium text-secondary">{label}</AriaLabel>
             <div className="flex flex-wrap gap-2">
-                {LABEL_COLORS.map((color) => (
+                {LABEL_COLORS.map((color, index) => (
                     <AriaRadio
                         key={color}
                         value={color}
-                        aria-label={color}
+                        aria-label={t(String(index))}
                         className={({ isSelected, isFocusVisible }) =>
                             cx(
                                 "size-7 cursor-pointer rounded-full ring-offset-2 ring-offset-(--ui-bg-elevated) transition",
@@ -240,7 +241,7 @@ function LabelForm({ editing, onDone }: { editing: NonNullable<Editing>; onDone:
                     {t("common.cancel")}
                 </Button>
                 <Button type="submit" isLoading={isPending}>
-                    {t("common.save")}
+                    {t(editing.mode === "edit" ? "common.save" : "labels.submitCreate")}
                 </Button>
             </div>
         </form>
