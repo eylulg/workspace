@@ -25,9 +25,9 @@
         "search": "Komut paletini aç",
         "shortcuts": "Kısayollar",
         "resetDemo": "Demoyu sıfırla",
-        "resetDemoConfirm": "Demo çalışma alanı sıfırlansın mı? Ziyaretçilerin yaptığı tüm değişiklikler başlangıç verisiyle değiştirilir.",
+        "resetDemoConfirm": "Demo çalışma alanınız sıfırlansın mı? Yaptığınız tüm değişiklikler başlangıç verisiyle değiştirilir.",
         "resetDemoDone": "Demo çalışma alanı sıfırlandı.",
-        "demoNotice": "Bu ortak bir demo. Herkes düzenleyebilir ve her gece sıfırlanır.",
+        "demoNotice": "Bu bir demo ve veriler size özel bir kopya. İstediğinizi düzenleyin; bir gün sonra sıfırlanır.",
         "language": "Dil",
         "demoControls": "Demo denetimleri"
     },
@@ -287,11 +287,14 @@
         "invalid": "Bazı değerler geçerli değil. Formu kontrol edip yeniden deneyin.",
         "notFound": "Bu öğe artık yok. En güncel veriyi görmek için sayfayı yenileyin.",
         "titleRequired": "Bir başlık girin.",
-        "titleTooLong": "Başlık 200 karakterden kısa olmalı.",
+        "titleTooLong": "Başlık 120 karakterden kısa olmalı.",
+        "wordTooLong": "60 karakterden uzun sözcükleri bölün.",
         "nameRequired": "Bir ad girin.",
         "nameTooLong": "Daha kısa bir ad kullanın.",
         "duplicate": "Bu adda bir etiket zaten var. Başka bir ad seçin.",
         "commentRequired": "Göndermeden önce bir yorum yazın.",
+        "rateLimited": "Çok hızlı değişiklik yapıyorsunuz. Biraz bekleyip tekrar deneyin.",
+        "limitReached": "Bu demo çalışma alanı boyut sınırına ulaştı. Baştan başlamak için Demoyu sıfırla'yı kullanın.",
         "unknown": "Bir şeyler ters gitti. Birazdan yeniden deneyin."
     },
     "notFound": {

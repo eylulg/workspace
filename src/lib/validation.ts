@@ -4,12 +4,21 @@ import { STATUSES } from "./domain";
 const id = z.uuid();
 const isoDate = z.iso.date();
 
+/** Titles are one line in the list and on the board; a word this long cannot wrap and breaks the layout. */
+const LONG_WORD = /\S{61,}/;
+const title = z
+    .string()
+    .trim()
+    .min(1, "titleRequired")
+    .max(120, "titleTooLong")
+    .refine((value) => !LONG_WORD.test(value), "wordTooLong");
+
 const priorityValue = z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]);
 
 export const createIssueSchema = z.object({
     teamId: id,
-    title: z.string().trim().min(1, "titleRequired").max(200, "titleTooLong"),
-    description: z.string().max(20_000).default(""),
+    title,
+    description: z.string().max(5_000).default(""),
     status: z.enum(STATUSES).default("backlog"),
     priority: priorityValue.default(0),
     assigneeId: id.nullable().default(null),
@@ -23,8 +32,8 @@ export const updateIssueSchema = z.object({
     id,
     patch: z
         .object({
-            title: z.string().trim().min(1, "titleRequired").max(200, "titleTooLong"),
-            description: z.string().max(20_000),
+            title,
+            description: z.string().max(5_000),
             status: z.enum(STATUSES),
             priority: priorityValue,
             assigneeId: id.nullable(),
@@ -48,7 +57,7 @@ export const issueIdSchema = z.object({ id });
 
 export const commentSchema = z.object({
     issueId: id,
-    body: z.string().trim().min(1, "commentRequired").max(5_000),
+    body: z.string().trim().min(1, "commentRequired").max(2_000),
 });
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "invalidColor");

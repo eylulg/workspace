@@ -6,7 +6,7 @@ import { resetDemo, useTestDatabase } from "@/test-utils/test-db";
 import { createLabel, deleteLabel, updateLabel } from "../labels";
 
 vi.mock("next/cache", () => ({ updateTag: () => {}, cacheLife: () => {}, cacheTag: () => {} }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
+vi.mock("next/headers", async () => ({ cookies: (await import("@/test-utils/test-db")).testCookies }));
 vi.mock("next/server", () => ({ connection: async () => {} }));
 
 let db: Database;

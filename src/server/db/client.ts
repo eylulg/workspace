@@ -11,7 +11,7 @@ const globalForDb = globalThis as unknown as { __workspaceDb?: Promise<Database>
 /**
  * Production connects to Postgres through DATABASE_URL (Neon on Vercel).
  * Without it the app runs on PGlite, an embedded Postgres compiled to WebAssembly,
- * migrates itself and seeds the demo workspace, so no database server is needed.
+ * and migrates itself, so no database server is needed. Visitors get their workspace on first request.
  */
 async function createDatabase(): Promise<Database> {
     const url = process.env.DATABASE_URL;
@@ -22,22 +22,17 @@ async function createDatabase(): Promise<Database> {
         return drizzle(postgres(url, { max: 5, prepare: false }), { schema }) as unknown as Database;
     }
     const dir = process.env.PGLITE_DIR ?? ".pglite";
-    return createPgliteDatabase(dir === "memory" ? undefined : dir, { seed: true });
+    return createPgliteDatabase(dir === "memory" ? undefined : dir);
 }
 
-export async function createPgliteDatabase(dataDir: string | undefined, options: { seed: boolean }): Promise<Database> {
+export async function createPgliteDatabase(dataDir: string | undefined): Promise<Database> {
     const { PGlite } = await import("@electric-sql/pglite");
     const { drizzle } = await import("drizzle-orm/pglite");
     const { migrate } = await import("drizzle-orm/pglite/migrator");
     const client = new PGlite(dataDir);
     const db = drizzle(client, { schema });
     await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
-    const typed = db as unknown as Database;
-    if (options.seed) {
-        const { ensureDemoWorkspace } = await import("./seed");
-        await ensureDemoWorkspace(typed);
-    }
-    return typed;
+    return db as unknown as Database;
 }
 
 export function getDb(): Promise<Database> {

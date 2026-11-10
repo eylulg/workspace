@@ -25,9 +25,9 @@
         "search": "Befehlspalette öffnen",
         "shortcuts": "Tastenkürzel",
         "resetDemo": "Demo zurücksetzen",
-        "resetDemoConfirm": "Den Demo Workspace zurücksetzen? Alle Änderungen aller Besucher werden durch die Startdaten ersetzt.",
+        "resetDemoConfirm": "Deinen Demo Workspace zurücksetzen? Alle deine Änderungen werden durch die Startdaten ersetzt.",
         "resetDemoDone": "Der Demo Workspace wurde zurückgesetzt.",
-        "demoNotice": "Dies ist eine geteilte Demo. Alle können sie bearbeiten, und sie wird jede Nacht zurückgesetzt.",
+        "demoNotice": "Dies ist eine Demo mit deiner eigenen Kopie der Daten. Bearbeite alles; nach einem Tag wird sie zurückgesetzt.",
         "language": "Sprache",
         "demoControls": "Demo-Steuerung"
     },
@@ -287,11 +287,14 @@
         "invalid": "Einige Werte sind ungültig. Prüfe das Formular und versuche es erneut.",
         "notFound": "Dieses Element gibt es nicht mehr. Lade die Seite neu, um den aktuellen Stand zu sehen.",
         "titleRequired": "Gib einen Titel ein.",
-        "titleTooLong": "Der Titel darf höchstens 200 Zeichen haben.",
+        "titleTooLong": "Der Titel darf höchstens 120 Zeichen haben.",
+        "wordTooLong": "Teile Wörter mit mehr als 60 Zeichen auf.",
         "nameRequired": "Gib einen Namen ein.",
         "nameTooLong": "Verwende einen kürzeren Namen.",
         "duplicate": "Ein Label mit diesem Namen gibt es schon. Wähle einen anderen Namen.",
         "commentRequired": "Schreibe einen Kommentar, bevor du ihn sendest.",
+        "rateLimited": "Du nimmst Änderungen sehr schnell vor. Warte einen Moment und versuche es erneut.",
+        "limitReached": "Dieser Demo-Arbeitsbereich hat sein Größenlimit erreicht. Mit „Demo zurücksetzen“ beginnst du von vorn.",
         "unknown": "Etwas ist schiefgelaufen. Versuche es gleich noch einmal."
     },
     "notFound": {

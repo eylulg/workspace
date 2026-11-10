@@ -18,17 +18,19 @@ function lookup(entries: [string, string][]) {
     };
 }
 
-/** Creates the demo workspace only when it does not exist yet. */
-export async function ensureDemoWorkspace(db: Database) {
-    const existing = await db.select({ id: workspaces.id }).from(workspaces).where(eq(workspaces.slug, DEMO_WORKSPACE.slug));
-    if (existing.length === 0) await seedDemoWorkspace(db);
-}
-
-/** Deletes the demo workspace (cascading to everything in it) and creates it again from the fixture. */
-export async function seedDemoWorkspace(db: Database, now = new Date()) {
+/**
+ * Deletes the workspace with this slug (cascading to everything in it) and creates it again from the fixture.
+ * Every visitor gets their own copy under their own slug.
+ */
+export async function seedDemoWorkspace(db: Database, slug: string, now = new Date()) {
     return db.transaction(async (tx) => {
-        await tx.delete(workspaces).where(eq(workspaces.slug, DEMO_WORKSPACE.slug));
-        const workspace = single(await tx.insert(workspaces).values(DEMO_WORKSPACE).returning());
+        await tx.delete(workspaces).where(eq(workspaces.slug, slug));
+        const workspace = single(
+            await tx
+                .insert(workspaces)
+                .values({ ...DEMO_WORKSPACE, slug })
+                .returning(),
+        );
         const workspaceId = workspace.id;
 
         const memberRows = await tx

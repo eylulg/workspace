@@ -243,7 +243,7 @@ function TitleField({ value, onSave }: { value: string; onSave: (title: string) 
                 onChange={handleChange}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
-                maxLength={200}
+                maxLength={120}
                 className="-mx-2 field-sizing-content w-[calc(100%+1rem)] resize-none rounded-md bg-transparent px-2 py-1 font-display text-2xl font-semibold text-primary outline-focus hover:bg-hover focus-visible:outline-2"
             />
         </>

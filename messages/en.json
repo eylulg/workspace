@@ -25,9 +25,9 @@
         "search": "Open command palette",
         "shortcuts": "Shortcuts",
         "resetDemo": "Reset demo",
-        "resetDemoConfirm": "Reset the demo workspace? Every change made by any visitor is replaced with the starting data.",
+        "resetDemoConfirm": "Reset your demo workspace? Every change you made is replaced with the starting data.",
         "resetDemoDone": "The demo workspace was reset.",
-        "demoNotice": "This is a shared demo. Anyone can edit it, and it resets every night.",
+        "demoNotice": "This is a demo with your own copy of the data. Edit anything; it resets after a day.",
         "language": "Language",
         "demoControls": "Demo controls"
     },
@@ -287,11 +287,14 @@
         "invalid": "Some values were not valid. Check the form and try again.",
         "notFound": "That item no longer exists. Reload the page to see the latest data.",
         "titleRequired": "Enter a title.",
-        "titleTooLong": "Keep the title under 200 characters.",
+        "titleTooLong": "Keep the title under 120 characters.",
+        "wordTooLong": "Break up words longer than 60 characters.",
         "nameRequired": "Enter a name.",
         "nameTooLong": "Use a shorter name.",
         "duplicate": "A label with this name already exists. Choose another name.",
         "commentRequired": "Write a comment before posting.",
+        "rateLimited": "You are making changes very quickly. Wait a moment and try again.",
+        "limitReached": "This demo workspace has reached its size limit. Use Reset demo to start over.",
         "unknown": "Something went wrong. Try again in a moment."
     },
     "notFound": {

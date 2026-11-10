@@ -20,7 +20,7 @@ async function main() {
         return;
     }
     const { createPgliteDatabase } = await import("../src/server/db/client");
-    await createPgliteDatabase(process.env.PGLITE_DIR ?? ".pglite", { seed: false });
+    await createPgliteDatabase(process.env.PGLITE_DIR ?? ".pglite");
     console.log(`Migrated PGlite database in ${process.env.PGLITE_DIR ?? ".pglite"}.`);
 }
 

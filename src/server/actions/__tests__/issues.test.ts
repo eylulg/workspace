@@ -8,7 +8,7 @@ import { addComment, createIssue, deleteIssue, moveIssue, restoreIssue, updateIs
 // Next.js request and cache APIs are the platform boundary; the database and the actions are real.
 const updateTag = vi.hoisted(() => vi.fn());
 vi.mock("next/cache", () => ({ updateTag, cacheLife: () => {}, cacheTag: () => {} }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
+vi.mock("next/headers", async () => ({ cookies: (await import("@/test-utils/test-db")).testCookies }));
 vi.mock("next/server", () => ({ connection: async () => {} }));
 
 let db: Database;
@@ -54,7 +54,8 @@ describe("createIssue", () => {
 
     it.each([
         ["a blank title", { title: "   " }, "titleRequired"],
-        ["a title over 200 characters", { title: "x".repeat(201) }, "titleTooLong"],
+        ["a title over 120 characters", { title: "word ".repeat(30) }, "titleTooLong"],
+        ["a word too long to wrap", { title: "x".repeat(61) }, "wordTooLong"],
         ["a label from another workspace", { title: "Valid", labelIds: ["00000000-0000-4000-8000-000000000000"] }, "notFound"],
     ])("rejects %s without writing", async (_name, input, error) => {
         const { web, issues } = await workspace();

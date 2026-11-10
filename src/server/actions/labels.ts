@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { type ActionResult, fail, fromZodError, ok } from "@/lib/action-result";
 import { createLabelSchema, issueIdSchema, updateLabelSchema } from "@/lib/validation";
@@ -8,7 +8,9 @@ import { teamTag, workspaceTag } from "../cache-tags";
 import { getDb } from "../db/client";
 import { single } from "../db/rows";
 import { labels, teams } from "../db/schema";
-import { getViewer } from "../session";
+import { getWritingViewer } from "../session";
+
+const MAX_LABELS = 30;
 
 const isUniqueViolation = (error: unknown) => {
     const candidate = error as { code?: string; cause?: { code?: string } };
@@ -26,8 +28,11 @@ async function refreshWorkspace(workspaceId: string) {
 export async function createLabel(input: { name: string; color: string }): Promise<ActionResult<{ id: string }>> {
     const parsed = createLabelSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
+    const [{ total = 0 } = {}] = await db.select({ total: count() }).from(labels).where(eq(labels.workspaceId, viewer.workspaceId));
+    if (total >= MAX_LABELS) return fail("limitReached");
     try {
         const label = single(
             await db
@@ -47,7 +52,8 @@ export async function updateLabel(input: { id: string; name: string; color: stri
     const parsed = updateLabelSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
     const { id, ...values } = parsed.data;
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
     try {
         const updated = await db
@@ -67,7 +73,8 @@ export async function updateLabel(input: { id: string; name: string; color: stri
 export async function deleteLabel(input: { id: string }): Promise<ActionResult<{ id: string }>> {
     const parsed = issueIdSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
     const deleted = await db
         .delete(labels)

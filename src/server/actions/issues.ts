@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq, gt, inArray, isNull, min, ne, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, isNull, min, ne, sql } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { type ActionResult, fail, fromZodError, ok } from "@/lib/action-result";
 import { identifierOf } from "@/lib/domain";
@@ -18,7 +18,10 @@ import { teamTag } from "../cache-tags";
 import { type Database, getDb } from "../db/client";
 import { single } from "../db/rows";
 import { type ActivityKind, activities, comments, issueLabels, issues, labels, members, projects, teams } from "../db/schema";
-import { getViewer } from "../session";
+import { getWritingViewer } from "../session";
+
+/** A visitor workspace starts with 60 issues; this leaves room to play without letting a script fill the database. */
+const MAX_ISSUES = 150;
 
 type Tx = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
@@ -64,10 +67,13 @@ export async function createIssue(input: CreateIssueInput): Promise<ActionResult
     const parsed = createIssueSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
     const data = parsed.data;
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
 
     const created = await db.transaction(async (tx) => {
+        const [{ total = 0 } = {}] = await tx.select({ total: count() }).from(issues).where(eq(issues.workspaceId, viewer.workspaceId));
+        if (total >= MAX_ISSUES) return "limit" as const;
         if (!(await referencesBelongTo(tx, viewer.workspaceId, data))) return null;
         // Bumping the counter in the same statement that reads it keeps numbers unique under concurrent creates.
         const [team] = await tx
@@ -109,6 +115,7 @@ export async function createIssue(input: CreateIssueInput): Promise<ActionResult
         return { id: issue.id, identifier: identifierOf(team.key, team.number) };
     });
 
+    if (created === "limit") return fail("limitReached");
     if (!created) return fail("notFound");
     updateTag(teamTag(data.teamId));
     return ok(created);
@@ -128,7 +135,8 @@ export async function updateIssue(input: UpdateIssueInput): Promise<ActionResult
     const parsed = updateIssueSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
     const { id, patch } = parsed.data;
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
 
     const result = await db.transaction(async (tx) => {
@@ -197,7 +205,8 @@ export async function moveIssue(input: {
     const parsed = moveIssueSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
     const { id, status, afterId } = parsed.data;
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
 
     const result = await db.transaction(async (tx) => {
@@ -248,7 +257,8 @@ export async function restoreIssue(input: { id: string }): Promise<ActionResult<
 async function setDeleted(input: { id: string }, deleted: boolean): Promise<ActionResult<{ id: string }>> {
     const parsed = issueIdSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
     const current = await findIssue(db, viewer.workspaceId, parsed.data.id, { includeDeleted: true });
     if (!current || (current.deletedAt !== null) === deleted) return fail("notFound");
@@ -266,7 +276,8 @@ async function setDeleted(input: { id: string }, deleted: boolean): Promise<Acti
 export async function addComment(input: { issueId: string; body: string }): Promise<ActionResult<{ id: string }>> {
     const parsed = commentSchema.safeParse(input);
     if (!parsed.success) return fromZodError(parsed.error);
-    const viewer = await getViewer();
+    const viewer = await getWritingViewer();
+    if (!viewer) return fail("rateLimited");
     const db = await getDb();
     const current = await findIssue(db, viewer.workspaceId, parsed.data.issueId);
     if (!current) return fail("notFound");
