@@ -20,17 +20,20 @@ import { CSS } from "@dnd-kit/utilities";
 import { Badge } from "@eylulg/ui/badge";
 import { Card } from "@eylulg/ui/card";
 import { cx } from "@eylulg/ui/cx";
-import { GripVertical } from "lucide-react";
+import { ChevronDown, GripVertical } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, startTransition, useRef, useState } from "react";
 import { DueDate } from "@/features/issues/due-date";
 import { LabelDot, StatusIcon } from "@/features/issues/issue-icons";
 import { AssigneeMenu, PriorityMenu, StatusMenu } from "@/features/issues/property-menus";
 import { useWorkspace } from "@/features/workspace/workspace-context";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { Link } from "@/i18n/navigation";
 import { COLUMN_PREFIX, type Columns, anchorFor, columnKeyboardCoordinates, columnOf, projectDrop, toColumns } from "@/lib/board-columns";
 import { type IssueSummary, type Priority, STATUSES, type Status } from "@/lib/domain";
 import type { IssuePatch } from "@/lib/optimistic";
+
+const PHONE_QUERY = "(max-width: 39.99rem)";
 
 interface BoardProps {
     issues: IssueSummary[];
@@ -135,7 +138,6 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
         setActiveId(null);
     }
 
-    // The board is a grid, not a horizontal scroller: dnd-kit's keyboard sensor scrolls a scroller instead of moving the card.
     return (
         <DndContext
             id="issue-board"
@@ -147,9 +149,16 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
         >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-                {visible.map((status) => (
-                    <BoardColumn key={status} status={status} ids={columns[status]} byId={byId} onUpdate={onUpdate} />
+            <div className="flex flex-col gap-3 sm:flex-row sm:overflow-x-auto sm:pb-2">
+                {visible.map((status, index) => (
+                    <BoardColumn
+                        key={status}
+                        status={status}
+                        ids={columns[status]}
+                        byId={byId}
+                        onUpdate={onUpdate}
+                        startsOpen={index === 0}
+                    />
                 ))}
             </div>
             <DragOverlay>{activeIssue ? <CardBody issue={activeIssue} isOverlay handle={<HandleIcon />} /> : null}</DragOverlay>
@@ -162,27 +171,67 @@ function BoardColumn({
     ids,
     byId,
     onUpdate,
+    startsOpen,
 }: {
     status: Status;
     ids: string[];
     byId: Map<string, IssueSummary>;
     onUpdate: BoardProps["onUpdate"];
+    startsOpen: boolean;
 }) {
     const t = useTranslations();
+    const isPhone = useMediaQuery(PHONE_QUERY, false);
+    const [open, setOpen] = useState(startsOpen);
     const { setNodeRef, isOver } = useDroppable({ id: `${COLUMN_PREFIX}${status}` });
     const headingId = `board-column-${status}`;
+    const listId = `board-list-${status}`;
+    const expanded = !isPhone || open;
+
+    function handleToggle() {
+        setOpen((current) => !current);
+    }
+
+    const title = (
+        <>
+            <StatusIcon status={status} />
+            {t(`status.${status}`)}
+            <span className="font-normal text-tertiary">{ids.length}</span>
+        </>
+    );
     return (
-        <section aria-labelledby={headingId} className="flex min-w-0 flex-col rounded-xl border border-subtle bg-secondary">
-            <h2 id={headingId} className="flex items-center gap-2 px-3 pt-3 pb-2 text-sm font-semibold text-primary">
-                <StatusIcon status={status} />
-                {t(`status.${status}`)}
-                <span className="font-normal text-tertiary">{ids.length}</span>
+        <section
+            aria-labelledby={headingId}
+            className="flex min-w-0 flex-col rounded-xl border border-subtle bg-secondary sm:max-h-[calc(100dvh-15rem)] sm:w-72 sm:shrink-0 2xl:w-auto 2xl:flex-1"
+        >
+            <h2 id={headingId} className="text-sm font-semibold text-primary">
+                {isPhone ? (
+                    <button
+                        type="button"
+                        aria-expanded={open}
+                        aria-controls={listId}
+                        onClick={handleToggle}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-start outline-focus focus-visible:outline-2"
+                    >
+                        {title}
+                        <ChevronDown
+                            aria-hidden="true"
+                            className={cx("ms-auto size-4 text-fg-tertiary transition-transform", open && "rotate-180")}
+                        />
+                    </button>
+                ) : (
+                    <span className="flex items-center gap-2 px-3 pt-3 pb-2">{title}</span>
+                )}
             </h2>
             <SortableContext items={ids} strategy={verticalListSortingStrategy}>
                 <ul
+                    id={listId}
                     ref={setNodeRef}
                     aria-labelledby={headingId}
-                    className={cx("flex min-h-24 flex-1 flex-col gap-2 rounded-b-xl px-2 pb-2 transition-colors", isOver && "bg-hover")}
+                    className={cx(
+                        "flex min-h-24 flex-1 flex-col gap-2 overflow-y-auto rounded-b-xl px-2 pb-2 transition-colors",
+                        !expanded && "hidden",
+                        isOver && "bg-hover",
+                    )}
                 >
                     {ids.map((id) => {
                         const issue = byId.get(id);
