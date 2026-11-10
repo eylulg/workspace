@@ -96,8 +96,11 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
 
     const announcements: Announcements = {
         onDragStart: ({ active }) => t("board.pickedUp", describe(active.id, undefined)),
-        onDragOver: ({ active, over }) =>
-            over ? t("board.movedTo", describe(active.id, over.id)) : t("board.notOver", describe(active.id, undefined)),
+        // Picking a card up reports it as over itself; keep the "picked up" announcement until it actually moves.
+        onDragOver: ({ active, over }) => {
+            if (over?.id === active.id && !lastDrop.current) return;
+            return over ? t("board.movedTo", describe(active.id, over.id)) : t("board.notOver", describe(active.id, undefined));
+        },
         onDragEnd: ({ active, over }) =>
             over ? t("board.dropped", describe(active.id, over.id)) : t("board.droppedNowhere", describe(active.id, undefined)),
         onDragCancel: ({ active }) => t("board.cancelled", describe(active.id, undefined)),
