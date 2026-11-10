@@ -20,6 +20,11 @@ async function notFoundResponse(request: NextRequest, locale: string, sessionId:
     if (page === "issue") {
         const parsed = identifier && !extra.length ? parseIdentifier(decodeURIComponent(identifier)) : null;
         missing = !parsed;
+        if (parsed && isRender && identifier !== `${parsed.teamKey.toUpperCase()}-${parsed.number}`) {
+            const url = request.nextUrl.clone();
+            url.pathname = `/${locale}/issue/${parsed.teamKey.toUpperCase()}-${parsed.number}`;
+            return NextResponse.redirect(url);
+        }
         if (parsed && isRender) {
             const check = new URL("/api/issue-exists", request.nextUrl.origin);
             check.searchParams.set("identifier", `${parsed.teamKey}-${parsed.number}`);

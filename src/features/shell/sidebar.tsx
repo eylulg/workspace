@@ -43,6 +43,7 @@ export function Sidebar() {
         const [path, search = ""] = href.split("?");
         if (path !== pathname) return false;
         if (path !== "/issues") return true;
+        if (search === "view=board") return params.get("view") === "board";
         return search === query || (!search && !query.includes("="));
     }
 
