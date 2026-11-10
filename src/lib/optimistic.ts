@@ -13,8 +13,22 @@ export type OptimisticAction =
 export function applyOptimistic(issues: IssueSummary[], action: OptimisticAction): IssueSummary[] {
     const now = new Date().toISOString();
     switch (action.type) {
-        case "update":
-            return issues.map((issue) => (issue.id === action.id ? { ...issue, ...action.patch, updatedAt: now } : issue));
+        case "update": {
+            const changing = issues.find((issue) => issue.id === action.id);
+            // The server puts an issue whose status changes at the top of its new column.
+            const newStatus = changing && action.patch.status && action.patch.status !== changing.status ? action.patch.status : null;
+            const top = newStatus
+                ? issues.filter((issue) => issue.teamId === changing?.teamId && issue.status === newStatus && issue.id !== action.id)
+                : [];
+            const sortOrder = newStatus
+                ? sortOrderBetween(null, top.length ? Math.min(...top.map((issue) => issue.sortOrder)) : null)
+                : undefined;
+            return issues.map((issue) =>
+                issue.id === action.id
+                    ? { ...issue, ...action.patch, ...(sortOrder === undefined ? {} : { sortOrder }), updatedAt: now }
+                    : issue,
+            );
+        }
         case "remove":
             return issues.filter((issue) => issue.id !== action.id);
         case "add":

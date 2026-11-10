@@ -26,6 +26,19 @@ describe("applyOptimistic", () => {
         expect(result.find((issue) => issue.id === moving.id)?.sortOrder).toBe(2000);
     });
 
+    it("puts an issue whose status changes at the top of its new column, as the server does", () => {
+        const changing = makeIssue({ number: 1, status: "todo", sortOrder: 5000 });
+        const issues = [
+            changing,
+            makeIssue({ number: 2, status: "done", sortOrder: 2000 }),
+            makeIssue({ number: 3, status: "done", sortOrder: 3000 }),
+        ];
+
+        const result = applyOptimistic(issues, { type: "update", id: changing.id, patch: { status: "done" } });
+
+        expect(result.find((issue) => issue.id === changing.id)).toMatchObject({ status: "done", sortOrder: 1000 });
+    });
+
     it("patches only the changed issue", () => {
         const issues = [makeIssue({ number: 1 }), makeIssue({ number: 2 })];
 
