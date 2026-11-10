@@ -34,6 +34,17 @@ jobs:
               with:
                   node-version: 24
                   cache: npm
+            # package.json depends on file:../ui, so the component library has to sit next to this checkout.
+            # actions/checkout cannot write outside the workspace, so check it out here and move it up a level.
+            - uses: actions/checkout@v4
+              with:
+                  repository: eylulg/ui
+                  path: ui-src
+            - name: Build the component library
+              run: |
+                  mv ui-src ../ui
+                  npm --prefix ../ui ci
+                  npm --prefix ../ui run build
             - run: npm ci
             - run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
@@ -48,6 +59,17 @@ jobs:
               with:
                   node-version: 24
                   cache: npm
+            # package.json depends on file:../ui, so the component library has to sit next to this checkout.
+            # actions/checkout cannot write outside the workspace, so check it out here and move it up a level.
+            - uses: actions/checkout@v4
+              with:
+                  repository: eylulg/ui
+                  path: ui-src
+            - name: Build the component library
+              run: |
+                  mv ui-src ../ui
+                  npm --prefix ../ui ci
+                  npm --prefix ../ui run build
             - run: npm ci
             - name: Typecheck
               run: npm run typecheck
