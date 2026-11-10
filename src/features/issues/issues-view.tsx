@@ -3,10 +3,11 @@
 import { Button } from "@eylulg/ui/button";
 import { EmptyState } from "@eylulg/ui/empty-state";
 import { PageHeader } from "@eylulg/ui/page-header";
+import { Skeleton } from "@eylulg/ui/skeleton";
 import { ListChecks, Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useEffect, useOptimistic, useTransition } from "react";
-import { Board } from "@/features/board/board";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useRouter } from "@/i18n/navigation";
 import type { IssueSummary } from "@/lib/domain";
@@ -16,6 +17,11 @@ import { SHORTCUT_EVENT } from "@/lib/shortcuts";
 import { IssueList } from "./issue-list";
 import { IssueToolbar } from "./issue-toolbar";
 import { useIssueMutations } from "./use-issue-mutations";
+
+// Drag and drop code is only needed on the board, so the list does not download it.
+const Board = dynamic(() => import("@/features/board/board").then((module) => module.Board), {
+    loading: () => <Skeleton shape="rect" className="h-96 w-full" />,
+});
 
 interface IssuesViewProps {
     issues: IssueSummary[];

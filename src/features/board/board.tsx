@@ -317,6 +317,7 @@ function CardBody({
                 ) : (
                     <Link
                         href={`/issue/${issue.identifier}`}
+                        prefetch={false}
                         data-issue-link
                         className="rounded-sm text-sm font-medium text-primary outline-focus hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
                     >

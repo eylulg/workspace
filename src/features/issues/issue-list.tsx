@@ -78,6 +78,7 @@ function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProp
             <Cell className={TITLE_CELL}>
                 <Link
                     href={`/issue/${issue.identifier}`}
+                    prefetch={false}
                     data-issue-link
                     className="line-clamp-2 rounded-sm font-medium wrap-anywhere text-primary outline-focus hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 sm:line-clamp-none sm:block sm:truncate"
                 >
