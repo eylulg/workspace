@@ -1,0 +1,74 @@
+{
+    "issues": {
+        "route": "/en/issues",
+        "runs": [
+            0.77,
+            0.78,
+            0.79
+        ],
+        "score": 78,
+        "jsGzipKb": 323,
+        "jsRawKb": 1011.5,
+        "cssGzipKb": 15.2,
+        "htmlRawKb": 595.3,
+        "htmlGzipKb": 45.5,
+        "requests": 24,
+        "lcpMs": 4207,
+        "cls": 0,
+        "tbtMs": 322
+    },
+    "board": {
+        "route": "/en/issues?view=board",
+        "runs": [
+            1,
+            1,
+            1
+        ],
+        "score": 100,
+        "jsGzipKb": 343.1,
+        "jsRawKb": 1068.9,
+        "cssGzipKb": 15.2,
+        "htmlRawKb": 472.3,
+        "htmlGzipKb": 37.2,
+        "requests": 26,
+        "lcpMs": 903,
+        "cls": 0.013,
+        "tbtMs": 45
+    },
+    "issue": {
+        "route": "/en/issue/WEB-12",
+        "runs": [
+            1,
+            1,
+            1
+        ],
+        "score": 100,
+        "jsGzipKb": 395.3,
+        "jsRawKb": 1236.3,
+        "cssGzipKb": 15.2,
+        "htmlRawKb": 115.6,
+        "htmlGzipKb": 26.3,
+        "requests": 32,
+        "lcpMs": 903,
+        "cls": 0,
+        "tbtMs": 15
+    },
+    "projects": {
+        "route": "/en/projects",
+        "runs": [
+            1,
+            1,
+            1
+        ],
+        "score": 100,
+        "jsGzipKb": 327.6,
+        "jsRawKb": 1025,
+        "cssGzipKb": 15.2,
+        "htmlRawKb": 112.5,
+        "htmlGzipKb": 25.6,
+        "requests": 27,
+        "lcpMs": 903,
+        "cls": 0,
+        "tbtMs": 14
+    }
+}

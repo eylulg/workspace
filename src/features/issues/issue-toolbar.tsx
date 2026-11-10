@@ -6,10 +6,12 @@ import { Input } from "@eylulg/ui/input";
 import { SegmentedControl, SegmentedControlItem } from "@eylulg/ui/segmented-control";
 import { Tag, TagGroup } from "@eylulg/ui/tag";
 import { Columns3, List, ListFilter, Search, SlidersHorizontal } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useState } from "react";
 import type { Key, Selection } from "react-aria-components";
 import { useWorkspace } from "@/features/workspace/workspace-context";
+import { useOpenedOnce } from "@/hooks/use-opened-once";
 import { PRIORITIES, STATUSES } from "@/lib/domain";
 import {
     CLEARED_FILTERS,
@@ -22,7 +24,8 @@ import {
 } from "@/lib/issue-query";
 import { LabelDot, PriorityIcon, StatusIcon } from "./issue-icons";
 import { MemberAvatar } from "./member-avatar";
-import { SaveViewDialog } from "./save-view-dialog";
+
+const SaveViewDialog = dynamic(() => import("./save-view-dialog").then((module) => module.SaveViewDialog), { ssr: false });
 
 type FilterKey = "status" | "priority" | "assignee" | "label" | "project";
 
@@ -60,6 +63,7 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
     const { data } = useWorkspace();
     const [search, setSearch] = useState(query.q);
     const [saveOpen, setSaveOpen] = useState(false);
+    const saveOpened = useOpenedOnce(saveOpen);
 
     const filterOptions: Record<FilterKey, FilterOption[]> = {
         status: STATUSES.map((status) => ({ id: status, label: t(`status.${status}`), icon: <StatusIcon status={status} /> })),
@@ -233,7 +237,7 @@ export function IssueToolbar({ query, onChange }: ToolbarProps) {
                 </div>
             ) : null}
 
-            <SaveViewDialog isOpen={saveOpen} onOpenChange={setSaveOpen} query={query} />
+            {saveOpened && <SaveViewDialog isOpen={saveOpen} onOpenChange={setSaveOpen} query={query} />}
         </div>
     );
 }

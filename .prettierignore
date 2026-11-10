@@ -7,3 +7,4 @@ test-results
 package-lock.json
 .pglite*
 docs/perf/**/*.json
+.lighthouseci

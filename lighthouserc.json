@@ -1,0 +1,37 @@
+{
+    "ci": {
+        "collect": {
+            "startServerCommand": "PGLITE_DIR=memory npx next start --port 4802",
+            "startServerReadyPattern": "Ready",
+            "url": [
+                "http://localhost:4802/en/issues",
+                "http://localhost:4802/en/issues?view=board",
+                "http://localhost:4802/en/issue/WEB-12",
+                "http://localhost:4802/en/projects"
+            ],
+            "numberOfRuns": 3,
+            "settings": { "onlyCategories": ["performance"] }
+        },
+        "assert": {
+            "assertMatrix": [
+                {
+                    "matchingUrlPattern": "^http://localhost:4802/en/issues$",
+                    "assertions": {
+                        "categories:performance": ["error", { "minScore": 0.7 }],
+                        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+                        "resource-summary:script:size": ["error", { "maxNumericValue": 1200000 }]
+                    }
+                },
+                {
+                    "matchingUrlPattern": "^http://localhost:4802/en/(issues\\?view=board|issue/WEB-12|projects)$",
+                    "assertions": {
+                        "categories:performance": ["error", { "minScore": 0.9 }],
+                        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+                        "resource-summary:script:size": ["error", { "maxNumericValue": 1300000 }]
+                    }
+                }
+            ]
+        },
+        "upload": { "target": "filesystem", "outputDir": ".lighthouseci" }
+    }
+}

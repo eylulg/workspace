@@ -93,3 +93,28 @@ jobs:
                   name: playwright-report
                   path: playwright-report
                   retention-days: 7
+
+    performance:
+        runs-on: ubuntu-latest
+        env:
+            NEXT_TELEMETRY_DISABLED: 1
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: npm
+            # package.json depends on file:../ui, so the component library has to sit next to this checkout.
+            - uses: actions/checkout@v4
+              with:
+                  repository: eylulg/ui
+                  path: ui-src
+            - name: Build the component library
+              run: |
+                  mv ui-src ../ui
+                  npm --prefix ../ui ci
+                  npm --prefix ../ui run build
+            - run: npm ci
+            - run: npm run build
+            - name: Lighthouse budgets
+              run: npx lhci autorun

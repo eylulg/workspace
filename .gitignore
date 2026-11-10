@@ -33,3 +33,4 @@ next-env.d.ts
 
 # Written by `next dev` for coding agents; regenerated on every run
 AGENTS.md
+/.lighthouseci
