@@ -33,13 +33,16 @@ export const MemberAvatar = ({
 }) => (
     <span
         aria-hidden="true"
+        // Initials come from CSS content so they are not text that competes with the control's accessible name.
+        data-initials={member ? initialsOf(member.name) : undefined}
         className={cx(
             "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
             size === "xs" ? "size-5 text-[10px]" : "size-6 text-[11px]",
+            "before:content-[attr(data-initials)]",
             member ? PALETTE[hash(member.id) % PALETTE.length] : "bg-secondary text-fg-quaternary ring-1 ring-secondary ring-inset",
             className,
         )}
     >
-        {member ? initialsOf(member.name) : <User01 className="size-3.5" />}
+        {member ? null : <User01 className="size-3.5" />}
     </span>
 );

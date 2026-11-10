@@ -1,6 +1,6 @@
 {
     "$schema": "https://unpkg.com/knip@5/schema.json",
-    "entry": ["scripts/*.ts", "playwright.config.ts", "vitest.config.mts"],
+    "entry": ["scripts/*.ts"],
     "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.ts"],
     "ignoreDependencies": [
         "tailwindcss",

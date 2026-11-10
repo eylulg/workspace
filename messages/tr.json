@@ -211,7 +211,8 @@
         "changeAssignee": "Atanan kişiyi değiştir",
         "setStatusFor": "{identifier} durumu",
         "setPriorityFor": "{identifier} önceliği",
-        "assign": "{identifier} için atanan"
+        "assign": "{identifier} için atanan",
+        "results": "Sonuçlar"
     },
     "shortcuts": {
         "title": "Klavye kısayolları",

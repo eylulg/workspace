@@ -145,11 +145,10 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                     value={search}
                     onValueChange={setSearch}
                     placeholder={placeholder}
-                    aria-label={placeholder}
                     className="h-14 w-full bg-transparent text-md text-primary outline-hidden placeholder:text-placeholder"
                 />
             </div>
-            <Command.List className="overflow-y-auto p-1">
+            <Command.List label={t("palette.results")} className="overflow-y-auto p-1">
                 <Command.Empty className="px-4 py-8 text-center text-sm text-tertiary">{t("palette.noResults")}</Command.Empty>
 
                 {mode === "status" && target && (

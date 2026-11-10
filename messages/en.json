@@ -211,7 +211,8 @@
         "changeAssignee": "Change assignee",
         "setStatusFor": "Status of {identifier}",
         "setPriorityFor": "Priority of {identifier}",
-        "assign": "Assignee of {identifier}"
+        "assign": "Assignee of {identifier}",
+        "results": "Results"
     },
     "shortcuts": {
         "title": "Keyboard shortcuts",

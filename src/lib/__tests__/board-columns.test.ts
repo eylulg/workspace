@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ids, makeIssue } from "@/test-utils/fixtures";
-import { anchorFor, columnOf, toColumns } from "../board-columns";
+import { anchorFor, columnOf, projectDrop, toColumns } from "../board-columns";
 
 describe("board columns", () => {
     const web1 = makeIssue({ number: 1, status: "todo" });
@@ -21,5 +21,15 @@ describe("board columns", () => {
         ["an unknown id", "missing", null],
     ])("finds the column of %s", (_name, id, expected) => {
         expect(columnOf(id, toColumns([web1, web2]))).toBe(expected);
+    });
+
+    it.each([
+        ["onto a card in another column, above that card", "done-1", "done", ["web-2", "done-1"]],
+        ["onto an empty part of another column, at its end", "column:done", "done", ["done-1", "web-2"]],
+        ["onto a card in the same column, in that card's place", "web-1", "todo", ["web-2", "web-1"]],
+    ])("projects a drop %s", (_name, overId, status, column) => {
+        const columns = { ...toColumns([]), todo: ["web-1", "web-2"], done: ["done-1"] };
+
+        expect(projectDrop(columns, "web-2", overId)).toEqual({ status, column });
     });
 });

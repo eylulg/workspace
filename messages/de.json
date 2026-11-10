@@ -211,7 +211,8 @@
         "changeAssignee": "Zuständigkeit ändern",
         "setStatusFor": "Status von {identifier}",
         "setPriorityFor": "Priorität von {identifier}",
-        "assign": "Zuständig für {identifier}"
+        "assign": "Zuständig für {identifier}",
+        "results": "Ergebnisse"
     },
     "shortcuts": {
         "title": "Tastenkürzel",

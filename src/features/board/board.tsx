@@ -15,17 +15,17 @@ import {
     useSensor,
     useSensors,
 } from "@dnd-kit/core";
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DotsGrid } from "@untitledui/icons";
 import { useTranslations } from "next-intl";
-import { type ReactNode, startTransition, useState } from "react";
+import { type ReactNode, startTransition, useRef, useState } from "react";
 import { DueDate } from "@/features/issues/due-date";
 import { LabelDot, StatusIcon } from "@/features/issues/issue-icons";
 import { AssigneeMenu, PriorityMenu, StatusMenu } from "@/features/issues/property-menus";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { Link } from "@/i18n/navigation";
-import { COLUMN_PREFIX, type Columns, anchorFor, columnOf, toColumns } from "@/lib/board-columns";
+import { COLUMN_PREFIX, type Columns, anchorFor, columnKeyboardCoordinates, columnOf, projectDrop, toColumns } from "@/lib/board-columns";
 import { type IssueSummary, type Priority, STATUSES, type Status } from "@/lib/domain";
 import type { IssuePatch } from "@/lib/optimistic";
 import { cx } from "@/utils/cx";
@@ -38,6 +38,17 @@ interface BoardProps {
     onUpdate: (issue: IssueSummary, patch: IssuePatch) => void;
 }
 
+function removeId(columns: Columns, id: string): Columns {
+    return {
+        backlog: columns.backlog.filter((item) => item !== id),
+        todo: columns.todo.filter((item) => item !== id),
+        in_progress: columns.in_progress.filter((item) => item !== id),
+        in_review: columns.in_review.filter((item) => item !== id),
+        done: columns.done.filter((item) => item !== id),
+        canceled: columns.canceled.filter((item) => item !== id),
+    };
+}
+
 export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
     const t = useTranslations();
     const visible = statuses.length ? STATUSES.filter((status) => statuses.includes(status)) : STATUSES;
@@ -46,67 +57,73 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
     // While a card is dragged the board renders this local copy, so hovering another column moves the card there.
     const [dragColumns, setDragColumns] = useState<Columns | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const lastDrop = useRef<ReturnType<typeof projectDrop>>(null);
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+        useSensor(KeyboardSensor, { coordinateGetter: columnKeyboardCoordinates(visible) }),
     );
     const columns = dragColumns ?? baseColumns;
     const activeIssue = activeId ? byId.get(activeId) : undefined;
 
-    function describe(id: UniqueIdentifier) {
-        const status = columnOf(id, columns);
-        const issue = byId.get(String(id));
-        const column = status ? columns[status] : [];
+    /**
+     * Once the card sits in a new column it is often "over" itself. That says nothing about where it
+     * should go, so the last real target is kept and reused.
+     */
+    function dropFor(activeId: UniqueIdentifier, overId: UniqueIdentifier | undefined) {
+        if (overId === undefined) return null;
+        if (overId === activeId) return lastDrop.current;
+        return projectDrop(baseColumns, String(activeId), overId);
+    }
+
+    function describe(activeId: UniqueIdentifier, overId: UniqueIdentifier | undefined) {
+        const id = String(activeId);
+        const issue = byId.get(id);
+        const drop = dropFor(activeId, overId);
+        const status = drop?.status ?? columnOf(id, baseColumns);
+        const column = drop?.column ?? (status ? baseColumns[status] : []);
         return {
-            title: issue ? `${issue.identifier} ${issue.title}` : String(id),
+            title: issue ? `${issue.identifier} ${issue.title}` : id,
             column: status ? t(`status.${status}`) : "",
-            position: column.indexOf(String(id)) + 1,
+            position: column.indexOf(id) + 1,
             total: column.length,
         };
     }
 
     const announcements: Announcements = {
-        onDragStart: ({ active }) => t("board.pickedUp", describe(active.id)),
-        onDragOver: ({ active, over }) => (over ? t("board.movedTo", describe(active.id)) : t("board.notOver", describe(active.id))),
-        onDragEnd: ({ active, over }) => (over ? t("board.dropped", describe(active.id)) : t("board.droppedNowhere", describe(active.id))),
-        onDragCancel: ({ active }) => t("board.cancelled", describe(active.id)),
+        onDragStart: ({ active }) => t("board.pickedUp", describe(active.id, undefined)),
+        onDragOver: ({ active, over }) =>
+            over ? t("board.movedTo", describe(active.id, over.id)) : t("board.notOver", describe(active.id, undefined)),
+        onDragEnd: ({ active, over }) =>
+            over ? t("board.dropped", describe(active.id, over.id)) : t("board.droppedNowhere", describe(active.id, undefined)),
+        onDragCancel: ({ active }) => t("board.cancelled", describe(active.id, undefined)),
     };
 
     function handleDragStart({ active }: DragStartEvent) {
-        setDragColumns(baseColumns);
+        lastDrop.current = null;
         setActiveId(String(active.id));
     }
 
+    // Shows the card in the hovered column while dragging.
     function handleDragOver({ active, over }: DragOverEvent) {
-        if (!over) return;
-        setDragColumns((current) => {
-            const state = current ?? baseColumns;
-            const from = columnOf(active.id, state);
-            const to = columnOf(over.id, state);
-            if (!from || !to || from === to) return state;
-            const target = state[to].filter((id) => id !== active.id);
-            const overIndex = target.indexOf(String(over.id));
-            target.splice(overIndex >= 0 ? overIndex : target.length, 0, String(active.id));
-            return { ...state, [from]: state[from].filter((id) => id !== active.id), [to]: target };
-        });
+        if (!over || over.id === active.id) return;
+        const drop = projectDrop(baseColumns, String(active.id), over.id);
+        if (!drop) return;
+        lastDrop.current = drop;
+        setDragColumns({ ...removeId(baseColumns, String(active.id)), [drop.status]: drop.column });
     }
 
     function handleDragEnd({ active, over }: DragEndEvent) {
         const id = String(active.id);
-        const state = dragColumns ?? baseColumns;
-        setActiveId(null);
         const issue = byId.get(id);
-        const status = columnOf(id, state);
-        if (!over || !issue || !status) {
+        const drop = dropFor(active.id, over?.id) ?? (over?.id === active.id ? projectDrop(baseColumns, id, id) : null);
+        setActiveId(null);
+        if (!issue || !drop) {
             setDragColumns(null);
             return;
         }
-        let column = state[status];
-        const overIndex = column.indexOf(String(over.id));
-        if (overIndex >= 0 && over.id !== active.id) column = arrayMove(column, column.indexOf(id), overIndex);
-        const afterId = anchorFor(id, column, byId);
-        const unchanged = status === issue.status && afterId === anchorFor(id, baseColumns[status], byId);
-        if (!unchanged) onMove(issue, status, afterId);
+        const afterId = anchorFor(id, drop.column, byId);
+        const unchanged = drop.status === issue.status && afterId === anchorFor(id, baseColumns[drop.status], byId);
+        if (!unchanged) onMove(issue, drop.status, afterId);
         // Dropping the local copy in a transition lets React swap it for the optimistic list in the same render.
         startTransition(() => setDragColumns(null));
     }
@@ -116,6 +133,7 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
         setActiveId(null);
     }
 
+    // The board is a grid, not a horizontal scroller: dnd-kit's keyboard sensor scrolls a scroller instead of moving the card.
     return (
         <DndContext
             id="issue-board"
@@ -127,7 +145,7 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
         >
-            <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-4 sm:-mx-8 sm:px-8">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
                 {visible.map((status) => (
                     <BoardColumn key={status} status={status} ids={columns[status]} byId={byId} onUpdate={onUpdate} />
                 ))}
@@ -152,10 +170,7 @@ function BoardColumn({
     const { setNodeRef, isOver } = useDroppable({ id: `${COLUMN_PREFIX}${status}` });
     const headingId = `board-column-${status}`;
     return (
-        <section
-            aria-labelledby={headingId}
-            className="bg-secondary_subtle flex w-72 shrink-0 snap-start flex-col rounded-xl ring-1 ring-secondary"
-        >
+        <section aria-labelledby={headingId} className="bg-secondary_subtle flex min-w-0 flex-col rounded-xl ring-1 ring-secondary">
             <h2 id={headingId} className="flex items-center gap-2 px-3 pt-3 pb-2 text-sm font-semibold text-primary">
                 <StatusIcon status={status} />
                 {t(`status.${status}`)}
