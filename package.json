@@ -16,7 +16,7 @@
         "test:e2e": "playwright test",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "tsx scripts/migrate.ts",
-        "relink": "rm -rf node_modules/@eylulg/ui && npm install ../ui --install-links",
+        "relink": "rm -rf node_modules/@eylulg/ui && npm install ../ui --install-links && git checkout -- package-lock.json",
         "prepare": "husky",
         "knip": "knip"
     },
