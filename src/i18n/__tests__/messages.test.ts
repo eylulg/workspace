@@ -37,6 +37,6 @@ describe.each([
     });
 
     it("contain no long dashes", () => {
-        expect(Object.values(messages).filter((value) => /[–—]/.test(value))).toEqual([]);
+        expect(Object.values(messages).filter((value) => new RegExp("[\\u2013\\u2014]").test(value))).toEqual([]);
     });
 });

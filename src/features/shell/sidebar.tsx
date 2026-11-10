@@ -137,11 +137,11 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 <p className="bg-secondary_subtle rounded-lg px-3 py-2 text-xs text-tertiary ring-1 ring-secondary">
                     {t("nav.demoNotice")}
                 </p>
-                <div className="flex gap-2">
-                    <Button size="sm" color="tertiary" iconLeading={Keyboard01} onClick={handleHelp} className="flex-1">
+                <div className="flex flex-col items-start gap-1">
+                    <Button size="sm" color="tertiary" iconLeading={Keyboard01} onClick={handleHelp}>
                         {t("nav.shortcuts")}
                     </Button>
-                    <Button size="sm" color="tertiary" iconLeading={RefreshCcw01} onClick={resetDemo} className="flex-1">
+                    <Button size="sm" color="tertiary" iconLeading={RefreshCcw01} onClick={resetDemo}>
                         {t("nav.resetDemo")}
                     </Button>
                 </div>
