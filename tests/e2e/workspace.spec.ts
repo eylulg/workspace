@@ -5,7 +5,7 @@ test("creates an issue from the command palette", async ({ page }) => {
     await page.goto("/en/issues?team=WEB");
     await expect(page.getByRole("heading", { level: 1, name: "Web issues" })).toBeVisible();
 
-    const search = page.getByRole("searchbox", { name: "Search commands and issues" });
+    const search = page.getByRole("combobox", { name: "Search commands and issues" });
     // Retries until the page has hydrated and the button opens the palette.
     await expect(async () => {
         if (!(await search.isVisible())) await page.getByRole("button", { name: "Open command palette" }).click();
