@@ -9,11 +9,11 @@
         "cancel": "Vazgeç",
         "save": "Değişiklikleri kaydet",
         "undo": "Geri al",
-        "dismiss": "Bildirimi kapat",
         "notifications": "Bildirimler",
         "write": "Yaz",
         "preview": "Önizleme",
-        "discard": "Değişiklikleri at"
+        "discard": "Değişiklikleri at",
+        "close": "Kapat"
     },
     "nav": {
         "main": "Ana menü",
@@ -23,8 +23,6 @@
         "teams": "Ekipler",
         "savedViews": "Kayıtlı görünümler",
         "search": "Komut paletini aç",
-        "openMenu": "Menüyü aç",
-        "closeMenu": "Menüyü kapat",
         "shortcuts": "Kısayollar",
         "resetDemo": "Demoyu sıfırla",
         "resetDemoConfirm": "Demo çalışma alanı sıfırlansın mı? Ziyaretçilerin yaptığı tüm değişiklikler başlangıç verisiyle değiştirilir.",
@@ -32,9 +30,8 @@
         "demoNotice": "Bu ortak bir demo. Herkes düzenleyebilir ve her gece sıfırlanır.",
         "language": "Dil",
         "theme": "Tema",
-        "light": "Açık tema",
-        "dark": "Koyu tema",
-        "system": "Sistem temasını kullan"
+        "demoControls": "Demo denetimleri",
+        "projectSwitcher": "Diğer projeler"
     },
     "status": {
         "backlog": "Bekleyen",
@@ -91,13 +88,13 @@
         "searchLabel": "Kayıtlarda ara",
         "searchPlaceholder": "Örneğin: onboarding",
         "activeFilters": "Etkin filtreler",
-        "removeFilter": "{filter} filtresini kaldır",
         "clearFilters": "Filtreleri temizle",
         "saveView": "Görünümü kaydet",
         "emptyTitle": "Henüz kayıt yok",
         "emptyBody": "Bu ekip için ilk kaydı oluşturun.",
         "emptyFilteredTitle": "Bu filtrelere uyan kayıt yok",
-        "emptyFilteredBody": "Daha fazla kayıt görmek için filtreleri değiştirin ya da temizleyin."
+        "emptyFilteredBody": "Daha fazla kayıt görmek için filtreleri değiştirin ya da temizleyin.",
+        "identifier": "No"
     },
     "views": {
         "saveTitle": "Görünümü kaydet",

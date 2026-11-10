@@ -1,13 +1,13 @@
+import { cx } from "@eylulg/ui/cx";
 import type { Priority, Status } from "@/lib/domain";
-import { cx } from "@/utils/cx";
 
 const STATUS_COLOR: Record<Status, string> = {
-    backlog: "text-fg-quaternary",
+    backlog: "text-fg-tertiary",
     todo: "text-fg-secondary",
-    in_progress: "text-warning-primary",
-    in_review: "text-brand-secondary",
-    done: "text-success-primary",
-    canceled: "text-fg-quaternary",
+    in_progress: "text-fg-warning",
+    in_review: "text-fg-brand",
+    done: "text-fg-success",
+    canceled: "text-fg-tertiary",
 };
 
 /** Linear style status glyphs. Decorative: the status name is always rendered or announced next to it. */
@@ -50,7 +50,7 @@ export function StatusIcon({ status, className }: { status: Status; className?: 
                     <circle cx="8" cy="8" r="7" fill="currentColor" />
                     <path
                         d="m5 8.2 2 2 4-4.2"
-                        stroke="var(--color-bg-primary)"
+                        stroke="var(--ui-bg-primary)"
                         strokeWidth="1.6"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -61,7 +61,7 @@ export function StatusIcon({ status, className }: { status: Status; className?: 
             return (
                 <svg {...common} fill="none">
                     <circle cx="8" cy="8" r="7" fill="currentColor" />
-                    <path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4" stroke="var(--color-bg-primary)" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4" stroke="var(--ui-bg-primary)" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
             );
     }
@@ -71,7 +71,7 @@ export function PriorityIcon({ priority, className }: { priority: Priority; clas
     const common = { "aria-hidden": true, viewBox: "0 0 16 16", className: cx("size-4 shrink-0", className) } as const;
     if (priority === 0) {
         return (
-            <svg {...common} className={cx(common.className, "text-fg-quaternary")} fill="currentColor">
+            <svg {...common} className={cx(common.className, "text-fg-tertiary")} fill="currentColor">
                 <rect x="2" y="7.25" width="3" height="1.5" rx="0.75" />
                 <rect x="6.5" y="7.25" width="3" height="1.5" rx="0.75" />
                 <rect x="11" y="7.25" width="3" height="1.5" rx="0.75" />
@@ -80,10 +80,10 @@ export function PriorityIcon({ priority, className }: { priority: Priority; clas
     }
     if (priority === 1) {
         return (
-            <svg {...common} className={cx(common.className, "text-error-primary")} fill="none">
+            <svg {...common} className={cx(common.className, "text-fg-error")} fill="none">
                 <rect x="1.5" y="1.5" width="13" height="13" rx="3" fill="currentColor" />
-                <path d="M8 4.5v4.25" stroke="var(--color-bg-primary)" strokeWidth="1.75" strokeLinecap="round" />
-                <circle cx="8" cy="11.25" r="1" fill="var(--color-bg-primary)" />
+                <path d="M8 4.5v4.25" stroke="var(--ui-bg-primary)" strokeWidth="1.75" strokeLinecap="round" />
+                <circle cx="8" cy="11.25" r="1" fill="var(--ui-bg-primary)" />
             </svg>
         );
     }

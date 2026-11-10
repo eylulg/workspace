@@ -1,3 +1,4 @@
+import { ToastProvider } from "@eylulg/ui/toast";
 import { render } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import type { ReactElement } from "react";
@@ -13,9 +14,11 @@ export function renderInWorkspace(
 ) {
     return render(
         <NextIntlClientProvider locale="en" messages={messages} timeZone="Europe/Amsterdam">
-            <WorkspaceProvider data={data} issueIndex={issueIndex}>
-                {ui}
-            </WorkspaceProvider>
+            <ToastProvider>
+                <WorkspaceProvider data={data} issueIndex={issueIndex}>
+                    {ui}
+                </WorkspaceProvider>
+            </ToastProvider>
         </NextIntlClientProvider>,
     );
 }

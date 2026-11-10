@@ -2,15 +2,5 @@
     "$schema": "https://unpkg.com/knip@5/schema.json",
     "entry": ["scripts/*.ts"],
     "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.ts"],
-    "ignoreDependencies": [
-        "tailwindcss",
-        "@tailwindcss/postcss",
-        "@tailwindcss/typography",
-        "tailwindcss-animate",
-        "tailwindcss-react-aria-components"
-    ],
-    "ignoreIssues": {
-        "src/components/**": ["exports", "types"],
-        "src/utils/is-react-component.ts": ["exports"]
-    }
+    "ignoreDependencies": ["tailwindcss", "@tailwindcss/postcss", "@tailwindcss/typography"]
 }

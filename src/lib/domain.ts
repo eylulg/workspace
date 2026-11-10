@@ -37,7 +37,7 @@ export interface ProjectSummary {
     targetDate: string | null;
 }
 
-export interface SavedView {
+interface SavedView {
     id: string;
     name: string;
     query: string;

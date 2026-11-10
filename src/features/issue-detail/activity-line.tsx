@@ -44,7 +44,7 @@ export function ActivityLine({ entry }: { entry: Entry }) {
     return (
         <p className="flex flex-wrap items-baseline gap-x-2 pl-1 text-sm text-tertiary">
             <span>{message}</span>
-            <time dateTime={entry.createdAt} className="text-xs text-quaternary">
+            <time dateTime={entry.createdAt} className="text-xs text-tertiary">
                 {format.dateTime(new Date(entry.createdAt), { dateStyle: "medium", timeStyle: "short" })}
             </time>
         </p>

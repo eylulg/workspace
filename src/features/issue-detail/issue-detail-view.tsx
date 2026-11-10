@@ -1,15 +1,16 @@
 "use client";
 
-import { ChevronLeft, Trash01 } from "@untitledui/icons";
+import { Button } from "@eylulg/ui/button";
+import { Card, CardBody, CardFooter, CardHeader } from "@eylulg/ui/card";
+import { Textarea } from "@eylulg/ui/textarea";
+import { useToast } from "@eylulg/ui/toast";
+import { ChevronLeft, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { type ChangeEvent, type FormEvent, type KeyboardEvent, useEffect, useOptimistic, useState, useTransition } from "react";
-import { Button } from "@/components/base/buttons/button";
-import { TextArea } from "@/components/base/textarea/textarea";
 import { DATE_INPUT_CLASS } from "@/features/issues/create-issue-dialog";
 import { MemberAvatar } from "@/features/issues/member-avatar";
 import { AssigneeMenu, LabelsMenu, PriorityMenu, ProjectMenu, StatusMenu } from "@/features/issues/property-menus";
 import { useIssueMutations } from "@/features/issues/use-issue-mutations";
-import { toastStore } from "@/features/toast/toast-store";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -87,12 +88,12 @@ export function IssueDetailView({ detail, teamKey }: { detail: IssueDetail; team
     }
 
     return (
-        <div className="flex flex-col gap-6 px-4 py-6 sm:px-8 xl:flex-row xl:items-start">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
             <article aria-labelledby="issue-title" className="flex min-w-0 flex-1 flex-col gap-6">
                 <nav aria-label={t("issue.breadcrumb")}>
                     <Link
                         href={`/issues?team=${teamKey}`}
-                        className="inline-flex items-center gap-1 rounded-sm text-sm font-medium text-tertiary outline-focus-ring hover:text-secondary focus-visible:outline-2"
+                        className="inline-flex items-center gap-1 rounded-sm text-sm font-medium text-tertiary outline-focus hover:text-secondary focus-visible:outline-2"
                     >
                         <ChevronLeft aria-hidden="true" className="size-4" />
                         {t("issue.backToIssues")}
@@ -100,7 +101,7 @@ export function IssueDetailView({ detail, teamKey }: { detail: IssueDetail; team
                 </nav>
 
                 <div className="flex flex-col gap-1">
-                    <p className="text-sm text-tertiary tabular-nums">{issue.identifier}</p>
+                    <p className="font-data text-sm text-tertiary tabular-nums">{issue.identifier}</p>
                     <h1 id="issue-title" className="sr-only">
                         {issue.title}
                     </h1>
@@ -109,7 +110,7 @@ export function IssueDetailView({ detail, teamKey }: { detail: IssueDetail; team
 
                 <DescriptionEditor key={issue.description} value={issue.description} onSave={handleDescription} />
 
-                <section aria-labelledby="activity-heading" className="flex flex-col gap-4 border-t border-secondary pt-6">
+                <section aria-labelledby="activity-heading" className="flex flex-col gap-4 border-t border-subtle pt-6">
                     <h2 id="activity-heading" className="text-sm font-semibold text-primary">
                         {t("issue.activity")}
                     </h2>
@@ -120,17 +121,20 @@ export function IssueDetailView({ detail, teamKey }: { detail: IssueDetail; team
                                     <ActivityLine entry={item.entry} />
                                 </li>
                             ) : (
-                                <li key={item.entry.id} className="rounded-xl bg-primary p-4 ring-1 ring-secondary">
-                                    <div className="mb-2 flex items-center gap-2 text-sm">
-                                        <MemberAvatar member={data.members.find((member) => member.id === item.entry.authorId)} size="xs" />
-                                        <span className="font-semibold text-primary">
-                                            {data.members.find((member) => member.id === item.entry.authorId)?.name ?? t("issue.someone")}
-                                        </span>
-                                        <time dateTime={item.at} className="text-tertiary">
-                                            {format.dateTime(new Date(item.at), DATE_TIME)}
-                                        </time>
-                                    </div>
-                                    <Markdown>{item.entry.body}</Markdown>
+                                <li key={item.entry.id}>
+                                    <Card>
+                                        <div className="mb-2 flex items-center gap-2 text-sm">
+                                            <MemberAvatar member={data.members.find((member) => member.id === item.entry.authorId)} />
+                                            <span className="font-semibold text-primary">
+                                                {data.members.find((member) => member.id === item.entry.authorId)?.name ??
+                                                    t("issue.someone")}
+                                            </span>
+                                            <time dateTime={item.at} className="text-tertiary">
+                                                {format.dateTime(new Date(item.at), DATE_TIME)}
+                                            </time>
+                                        </div>
+                                        <Markdown>{item.entry.body}</Markdown>
+                                    </Card>
                                 </li>
                             ),
                         )}
@@ -139,58 +143,61 @@ export function IssueDetailView({ detail, teamKey }: { detail: IssueDetail; team
                 </section>
             </article>
 
-            <aside
-                aria-labelledby="properties-heading"
-                className="bg-secondary_subtle flex w-full shrink-0 flex-col gap-4 rounded-xl p-4 ring-1 ring-secondary xl:sticky xl:top-6 xl:w-80"
-            >
-                <h2 id="properties-heading" className="text-sm font-semibold text-primary">
-                    {t("issue.properties")}
-                </h2>
-                <dl className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 text-sm">
-                    <dt className="text-tertiary">{t("issue.status")}</dt>
-                    <dd>
-                        <StatusMenu value={issue.status} onChange={handleStatus} />
-                    </dd>
-                    <dt className="text-tertiary">{t("issue.priority")}</dt>
-                    <dd>
-                        <PriorityMenu value={issue.priority} onChange={handlePriority} />
-                    </dd>
-                    <dt className="text-tertiary">{t("issue.assignee")}</dt>
-                    <dd>
-                        <AssigneeMenu value={issue.assigneeId} onChange={handleAssignee} />
-                    </dd>
-                    <dt className="text-tertiary">{t("issue.project")}</dt>
-                    <dd>
-                        <ProjectMenu teamId={issue.teamId} value={issue.projectId} onChange={handleProject} />
-                    </dd>
-                    <dt className="text-tertiary">{t("issue.labels")}</dt>
-                    <dd>
-                        <LabelsMenu value={issue.labelIds} onChange={handleLabels} />
-                    </dd>
-                    <dt className="text-tertiary">
-                        <label htmlFor="issue-due-date">{t("issue.dueDate")}</label>
-                    </dt>
-                    <dd>
-                        <input
-                            id="issue-due-date"
-                            type="date"
-                            value={issue.dueDate ?? ""}
-                            onChange={handleDueDate}
-                            className={DATE_INPUT_CLASS}
-                        />
-                    </dd>
-                    <dt className="text-tertiary">{t("issue.created")}</dt>
-                    <dd className="text-secondary">
-                        <time dateTime={issue.createdAt}>{format.dateTime(new Date(issue.createdAt), { dateStyle: "medium" })}</time>
-                    </dd>
-                    <dt className="text-tertiary">{t("issue.updated")}</dt>
-                    <dd className="text-secondary">
-                        <time dateTime={issue.updatedAt}>{format.dateTime(new Date(issue.updatedAt), DATE_TIME)}</time>
-                    </dd>
-                </dl>
-                <Button color="secondary-destructive" size="sm" iconLeading={Trash01} onClick={handleDelete}>
-                    {t("issue.delete")}
-                </Button>
+            <aside aria-label={t("issue.properties")} className="w-full shrink-0 xl:sticky xl:top-20 xl:w-80">
+                <Card>
+                    <CardHeader title={t("issue.properties")} headingLevel={2} />
+                    <CardBody>
+                        <dl className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 text-sm">
+                            <dt className="text-tertiary">{t("issue.status")}</dt>
+                            <dd>
+                                <StatusMenu value={issue.status} onChange={handleStatus} />
+                            </dd>
+                            <dt className="text-tertiary">{t("issue.priority")}</dt>
+                            <dd>
+                                <PriorityMenu value={issue.priority} onChange={handlePriority} />
+                            </dd>
+                            <dt className="text-tertiary">{t("issue.assignee")}</dt>
+                            <dd>
+                                <AssigneeMenu value={issue.assigneeId} onChange={handleAssignee} />
+                            </dd>
+                            <dt className="text-tertiary">{t("issue.project")}</dt>
+                            <dd>
+                                <ProjectMenu teamId={issue.teamId} value={issue.projectId} onChange={handleProject} />
+                            </dd>
+                            <dt className="text-tertiary">{t("issue.labels")}</dt>
+                            <dd>
+                                <LabelsMenu value={issue.labelIds} onChange={handleLabels} />
+                            </dd>
+                            <dt className="text-tertiary">
+                                <label htmlFor="issue-due-date">{t("issue.dueDate")}</label>
+                            </dt>
+                            <dd>
+                                <input
+                                    id="issue-due-date"
+                                    type="date"
+                                    value={issue.dueDate ?? ""}
+                                    onChange={handleDueDate}
+                                    className={DATE_INPUT_CLASS}
+                                />
+                            </dd>
+                            <dt className="text-tertiary">{t("issue.created")}</dt>
+                            <dd className="text-secondary">
+                                <time dateTime={issue.createdAt}>
+                                    {format.dateTime(new Date(issue.createdAt), { dateStyle: "medium" })}
+                                </time>
+                            </dd>
+                            <dt className="text-tertiary">{t("issue.updated")}</dt>
+                            <dd className="text-secondary">
+                                <time dateTime={issue.updatedAt}>{format.dateTime(new Date(issue.updatedAt), DATE_TIME)}</time>
+                            </dd>
+                        </dl>
+                    </CardBody>
+                    <CardFooter className="justify-start">
+                        <Button variant="secondary" size="sm" iconLeading={Trash2} onPress={handleDelete}>
+                            {t("issue.delete")}
+                        </Button>
+                    </CardFooter>
+                </Card>
             </aside>
         </div>
     );
@@ -231,7 +238,7 @@ function TitleField({ value, onSave }: { value: string; onSave: (title: string) 
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
                 maxLength={200}
-                className="-mx-2 rounded-md bg-transparent px-2 py-1 text-display-xs font-semibold text-primary outline-focus-ring hover:bg-primary_hover focus-visible:outline-2"
+                className="-mx-2 rounded-md bg-transparent px-2 py-1 font-display text-2xl font-semibold text-primary outline-focus hover:bg-hover focus-visible:outline-2"
             />
         </>
     );
@@ -239,6 +246,7 @@ function TitleField({ value, onSave }: { value: string; onSave: (title: string) 
 
 function CommentForm({ issueId }: { issueId: string }) {
     const t = useTranslations();
+    const { toast } = useToast();
     const mounted = useIsMounted();
     const [comment, setComment] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -258,7 +266,7 @@ function CommentForm({ issueId }: { issueId: string }) {
             }
             setComment("");
             setError(null);
-            toastStore.show({ message: t("issue.commentAdded") });
+            toast({ title: t("issue.commentAdded"), variant: "success" });
         });
     }
 
@@ -280,14 +288,14 @@ function CommentForm({ issueId }: { issueId: string }) {
 
     return (
         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-            <TextArea
+            <Textarea
                 label={t("issue.addComment")}
                 placeholder={t("issue.commentPlaceholder")}
                 value={comment}
                 onChange={handleChange}
                 rows={3}
                 isInvalid={error !== null}
-                hint={error ?? undefined}
+                errorMessage={error ?? undefined}
                 onKeyDown={handleKeyDown}
             />
             <div className="flex justify-end">

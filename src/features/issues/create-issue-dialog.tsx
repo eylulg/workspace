@@ -1,16 +1,16 @@
 "use client";
 
+import { Button } from "@eylulg/ui/button";
+import { Dialog } from "@eylulg/ui/dialog";
+import { Input } from "@eylulg/ui/input";
+import { Select, SelectItem } from "@eylulg/ui/select";
+import { Textarea } from "@eylulg/ui/textarea";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type ChangeEvent, type FormEvent, type KeyboardEvent, useState, useTransition } from "react";
-import { Heading as AriaHeading, type Key } from "react-aria-components";
-import { Dialog, Modal, ModalOverlay } from "@/components/application/modals/modal";
-import { Button } from "@/components/base/buttons/button";
-import { Input } from "@/components/base/input/input";
-import { Select } from "@/components/base/select/select";
-import { TextArea } from "@/components/base/textarea/textarea";
+import type { Key } from "react-aria-components";
 import { track } from "@/features/analytics/analytics";
-import { toastStore } from "@/features/toast/toast-store";
+import { useActionToast } from "@/features/toast/use-action-toast";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useRouter } from "@/i18n/navigation";
@@ -24,9 +24,10 @@ type Draft = Pick<IssueSummary, "teamId" | "title" | "status" | "priority" | "as
 };
 
 export const DATE_INPUT_CLASS =
-    "h-8 rounded-md bg-primary px-2 text-sm text-primary ring-1 ring-primary outline-focus-ring ring-inset focus-visible:outline-2";
+    "h-control-sm rounded-md border border-control bg-primary px-2 text-sm text-primary outline-none focus-visible:border-brand focus-visible:ring-4 focus-visible:ring-focus/25";
 
 export function CreateIssueDialog() {
+    const t = useTranslations();
     const { createOpen, setCreateOpen } = useWorkspace();
 
     function handleDone() {
@@ -34,11 +35,9 @@ export function CreateIssueDialog() {
     }
 
     return (
-        <ModalOverlay isOpen={createOpen} onOpenChange={setCreateOpen} isDismissable>
-            <Modal className="max-w-2xl">
-                <Dialog aria-labelledby="create-issue-title">{createOpen ? <CreateIssueForm onDone={handleDone} /> : null}</Dialog>
-            </Modal>
-        </ModalOverlay>
+        <Dialog isOpen={createOpen} onOpenChange={setCreateOpen} size="lg" title={t("create.title")} closeLabel={t("common.close")}>
+            {createOpen ? <CreateIssueForm onDone={handleDone} /> : null}
+        </Dialog>
     );
 }
 
@@ -46,6 +45,7 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
     const t = useTranslations();
     const router = useRouter();
     const params = useSearchParams();
+    const showActionToast = useActionToast();
     const { data } = useWorkspace();
     const mounted = useIsMounted();
     const defaultTeam = data.teams.find((team) => team.key === params.get("team")?.toUpperCase()) ?? data.teams[0];
@@ -80,8 +80,8 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
             }
             const { identifier } = result.data;
             track("issue_created", { teamId: draft.teamId, priority: draft.priority, hasProject: draft.projectId !== null });
-            toastStore.show({
-                message: t("create.created", { identifier }),
+            showActionToast({
+                title: t("create.created", { identifier }),
                 action: { label: t("create.view"), onAction: () => router.push(`/issue/${identifier}`) },
             });
             onDone();
@@ -139,22 +139,20 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
     }
 
     return (
-        <form className="flex flex-col gap-5 p-4 sm:p-6" onSubmit={handleSubmit}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <AriaHeading slot="title" id="create-issue-title" className="text-lg font-semibold text-primary">
-                    {t("create.title")}
-                </AriaHeading>
-                <Select
-                    aria-label={t("create.team")}
-                    size="sm"
-                    className="w-40"
-                    selectedKey={draft.teamId}
-                    onSelectionChange={handleTeamChange}
-                    items={data.teams.map((team) => ({ id: team.id, label: team.name, supportingText: team.key }))}
-                >
-                    {(item) => <Select.Item id={item.id} label={item.label} supportingText={item.supportingText} />}
-                </Select>
-            </div>
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <Select
+                label={t("create.team")}
+                className="w-full sm:w-48"
+                selectedKey={draft.teamId}
+                onSelectionChange={handleTeamChange}
+                items={data.teams}
+            >
+                {(team) => (
+                    <SelectItem id={team.id} textValue={team.name}>
+                        {team.name} <span className="text-tertiary">{team.key}</span>
+                    </SelectItem>
+                )}
+            </Select>
 
             <Input
                 label={t("create.titleLabel")}
@@ -166,11 +164,11 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
                 validationBehavior="aria"
                 autoFocus
                 isInvalid={error !== null}
-                hint={error ?? undefined}
+                errorMessage={error ?? undefined}
                 name="title"
             />
 
-            <TextArea
+            <Textarea
                 label={t("create.descriptionLabel")}
                 placeholder={t("create.descriptionPlaceholder")}
                 value={draft.description}
@@ -181,13 +179,13 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
 
             <fieldset className="flex flex-col gap-2">
                 <legend className="mb-2 text-sm font-medium text-secondary">{t("issue.properties")}</legend>
-                <div className="bg-secondary_subtle flex flex-wrap items-center gap-1 rounded-lg p-1 ring-1 ring-secondary">
+                <div className="flex flex-wrap items-center gap-1 rounded-lg border border-subtle bg-secondary p-1">
                     <StatusMenu value={draft.status} onChange={handleStatusChange} />
                     <PriorityMenu value={draft.priority} onChange={handlePriorityChange} />
                     <AssigneeMenu value={draft.assigneeId} onChange={handleAssigneeChange} />
                     <ProjectMenu teamId={draft.teamId} value={draft.projectId} onChange={handleProjectChange} />
                     <LabelsMenu value={draft.labelIds} onChange={handleLabelsChange} />
-                    <label className="flex h-8 items-center gap-2 rounded-md px-2 text-sm text-secondary">
+                    <label className="flex h-control-sm items-center gap-2 rounded-md px-2 text-sm text-secondary">
                         <span>{t("issue.dueDate")}</span>
                         <input type="date" value={draft.dueDate} onChange={handleDueDateChange} className={DATE_INPUT_CLASS} />
                     </label>
@@ -196,8 +194,8 @@ function CreateIssueForm({ onDone }: { onDone: () => void }) {
 
             <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-tertiary">{t("create.submitHint")}</p>
-                <div className="flex justify-end gap-3">
-                    <Button color="secondary" onClick={onDone}>
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <Button variant="secondary" onPress={onDone}>
                         {t("common.cancel")}
                     </Button>
                     <Button type="submit" isLoading={isPending}>

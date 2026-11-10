@@ -8,8 +8,7 @@ test("creates an issue from the command palette", async ({ page }) => {
     const search = page.getByRole("combobox", { name: "Command palette" });
     // Retries until the page has hydrated and the button opens the palette.
     await expect(async () => {
-        if (!(await search.isVisible()))
-            await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Open command palette" }).click();
+        if (!(await search.isVisible())) await page.getByRole("button", { name: "Open command palette" }).click();
         await expect(search).toBeVisible({ timeout: 1000 });
     }).toPass();
     await search.fill("Create issue");
@@ -45,10 +44,7 @@ test("moves an issue to the next column on the board with the keyboard", async (
 test("switches the interface to German and keeps the page", async ({ page }) => {
     await page.goto("/en/issues?view=board");
 
-    await page
-        .getByRole("navigation", { name: "Main" })
-        .getByRole("button", { name: /^Language:/ })
-        .click();
+    await page.getByRole("button", { name: /^Language:/ }).click();
     await page.getByRole("menuitemradio", { name: "Deutsch" }).click();
 
     await expect(page).toHaveURL(/\/de\/issues\?view=board$/);

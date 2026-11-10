@@ -10,7 +10,8 @@ const alias = {
 
 export default defineConfig({
     plugins: [react()],
-    resolve: { alias },
+    // The linked library has its own node_modules; one copy of React and React Aria keeps their contexts shared.
+    resolve: { alias, dedupe: ["react", "react-dom", "react-aria-components", "lucide-react"] },
     test: {
         projects: [
             {
@@ -32,7 +33,7 @@ export default defineConfig({
                     include: ["src/features/**/*.test.tsx"],
                     setupFiles: ["src/test-utils/setup-dom.ts"],
                     // next-intl imports "next/navigation" without an extension, which only a bundler resolves.
-                    server: { deps: { inline: ["next-intl"] } },
+                    server: { deps: { inline: ["next-intl", "@eylulg/ui"] } },
                 },
             },
         ],

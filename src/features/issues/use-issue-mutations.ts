@@ -1,9 +1,10 @@
 "use client";
 
+import { useToast } from "@eylulg/ui/toast";
 import { useTranslations } from "next-intl";
 import { startTransition as startGlobalTransition, useTransition } from "react";
 import { track } from "@/features/analytics/analytics";
-import { toastStore } from "@/features/toast/toast-store";
+import { useActionToast } from "@/features/toast/use-action-toast";
 import type { ActionResult } from "@/lib/action-result";
 import type { IssueSummary, Status } from "@/lib/domain";
 import type { IssuePatch, OptimisticAction } from "@/lib/optimistic";
@@ -19,10 +20,12 @@ type Apply = (action: OptimisticAction) => void;
  */
 export function useIssueMutations(apply: Apply | null) {
     const t = useTranslations();
+    const { toast } = useToast();
+    const showActionToast = useActionToast();
     const [isPending, startTransition] = useTransition();
 
     const report = (result: ActionResult<unknown>) => {
-        if (!result.ok) toastStore.show({ message: t(`errors.${result.error}`), tone: "error" });
+        if (!result.ok) toast({ title: t(`errors.${result.error}`), variant: "error" });
         return result.ok;
     };
 
@@ -32,7 +35,7 @@ export function useIssueMutations(apply: Apply | null) {
             try {
                 if (report(await action())) onSuccess?.();
             } catch {
-                toastStore.show({ message: t("errors.unknown"), tone: "error" });
+                toast({ title: t("errors.unknown"), variant: "error" });
             }
         });
     };
@@ -62,8 +65,8 @@ export function useIssueMutations(apply: Apply | null) {
     const restore = (issue: Pick<IssueSummary, "id" | "identifier">) => {
         startGlobalTransition(async () => {
             const result = await restoreIssue({ id: issue.id }).catch(() => null);
-            if (!result) toastStore.show({ message: t("errors.unknown"), tone: "error" });
-            else if (report(result)) toastStore.show({ message: t("issue.restored", { identifier: issue.identifier }) });
+            if (!result) toast({ title: t("errors.unknown"), variant: "error" });
+            else if (report(result)) toast({ title: t("issue.restored", { identifier: issue.identifier }), variant: "success" });
         });
     };
 
@@ -73,8 +76,8 @@ export function useIssueMutations(apply: Apply | null) {
             () => deleteIssue({ id: issue.id }),
             () => {
                 onDeleted?.();
-                toastStore.show({
-                    message: t("issue.deleted", { identifier: issue.identifier }),
+                showActionToast({
+                    title: t("issue.deleted", { identifier: issue.identifier }),
                     action: { label: t("common.undo"), onAction: () => restore(issue) },
                 });
             },

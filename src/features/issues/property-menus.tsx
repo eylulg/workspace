@@ -1,15 +1,18 @@
 "use client";
 
-import { Folder, Tag01 } from "@untitledui/icons";
+import { Button } from "@eylulg/ui/button";
+import { cx } from "@eylulg/ui/cx";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@eylulg/ui/dropdown-menu";
+import { Folder, Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { Button as AriaButton, type Key, type Selection } from "react-aria-components";
-import { Dropdown } from "@/components/base/dropdown/dropdown";
+import type { Key, Selection } from "react-aria-components";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { PRIORITIES, type Priority, STATUSES, type Status } from "@/lib/domain";
-import { cx } from "@/utils/cx";
 import { LabelDot, PriorityIcon, StatusIcon } from "./issue-icons";
 import { MemberAvatar } from "./member-avatar";
+
+const COMPACT_TRIGGER = "px-1.5";
 
 interface Option {
     id: string;
@@ -32,15 +35,6 @@ interface SingleMenuProps extends MenuProps {
     onChange: (value: string) => void;
 }
 
-function triggerClass(compact: boolean | undefined, className?: string) {
-    return cx(
-        "inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-md text-sm text-secondary outline-focus-ring transition duration-100 ease-linear",
-        "hover:bg-primary_hover focus-visible:outline-2 focus-visible:outline-offset-1 disabled:cursor-not-allowed",
-        compact ? "size-7 justify-center" : "h-8 px-2",
-        className,
-    );
-}
-
 function SingleSelectMenu({ label, options, value, onChange, compact, className, isDisabled }: SingleMenuProps) {
     const current = options.find((option) => option.id === value);
 
@@ -51,30 +45,36 @@ function SingleSelectMenu({ label, options, value, onChange, compact, className,
     if (!current) return null;
 
     return (
-        <Dropdown.Root>
-            <AriaButton aria-label={`${label}: ${current.label}`} className={triggerClass(compact, className)} isDisabled={isDisabled}>
+        <DropdownMenu>
+            <Button
+                variant="tertiary"
+                size="sm"
+                aria-label={`${label}: ${current.label}`}
+                isDisabled={isDisabled}
+                className={cx(compact && COMPACT_TRIGGER, className)}
+            >
                 {current.icon}
                 {!compact && <span className="truncate">{current.label}</span>}
-            </AriaButton>
-            <Dropdown.Popover placement="bottom start" className="w-56">
-                <Dropdown.Menu
-                    aria-label={label}
-                    selectionMode="single"
-                    selectedKeys={[value]}
-                    disallowEmptySelection
-                    onAction={handleAction}
-                >
-                    {options.map((option) => (
-                        <Dropdown.Item key={option.id} id={option.id} textValue={option.label}>
-                            <span className="flex items-center gap-2">
-                                {option.icon}
-                                <span className="truncate">{option.label}</span>
-                            </span>
-                        </Dropdown.Item>
-                    ))}
-                </Dropdown.Menu>
-            </Dropdown.Popover>
-        </Dropdown.Root>
+            </Button>
+            <DropdownMenuContent
+                aria-label={label}
+                placement="bottom start"
+                popoverClassName="w-56"
+                selectionMode="single"
+                selectedKeys={[value]}
+                disallowEmptySelection
+                onAction={handleAction}
+            >
+                {options.map((option) => (
+                    <DropdownMenuItem key={option.id} id={option.id} textValue={option.label}>
+                        <span className="flex items-center gap-2">
+                            {option.icon}
+                            <span className="truncate">{option.label}</span>
+                        </span>
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
 
@@ -92,8 +92,8 @@ export function useAssigneeOptions(): Option[] {
     const t = useTranslations("issue");
     const { data } = useWorkspace();
     return [
-        { id: "none", label: t("unassigned"), icon: <MemberAvatar member={null} size="xs" /> },
-        ...data.members.map((member) => ({ id: member.id, label: member.name, icon: <MemberAvatar member={member} size="xs" /> })),
+        { id: "none", label: t("unassigned"), icon: <MemberAvatar member={null} /> },
+        ...data.members.map((member) => ({ id: member.id, label: member.name, icon: <MemberAvatar member={member} /> })),
     ];
 }
 
@@ -101,7 +101,7 @@ function useProjectOptions(teamId: string): Option[] {
     const t = useTranslations("issue");
     const { data } = useWorkspace();
     return [
-        { id: "none", label: t("noProject"), icon: <Folder aria-hidden="true" className="size-4 text-fg-quaternary" /> },
+        { id: "none", label: t("noProject"), icon: <Folder aria-hidden="true" className="size-4 text-fg-tertiary" /> },
         ...data.projects
             .filter((project) => project.teamId === teamId)
             .map((project) => ({
@@ -175,8 +175,8 @@ export function LabelsMenu({ value, onChange, className }: { value: string[]; on
     }
 
     return (
-        <Dropdown.Root>
-            <AriaButton aria-label={`${t("labels")}: ${summary}`} className={triggerClass(false, cx("max-w-full", className))}>
+        <DropdownMenu>
+            <Button variant="tertiary" size="sm" aria-label={`${t("labels")}: ${summary}`} className={className}>
                 {selected.length ? (
                     <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                         {selected.map((label) => (
@@ -188,28 +188,28 @@ export function LabelsMenu({ value, onChange, className }: { value: string[]; on
                     </span>
                 ) : (
                     <>
-                        <Tag01 aria-hidden="true" className="size-4 text-fg-quaternary" />
+                        <Tag aria-hidden="true" className="size-4 text-fg-tertiary" />
                         <span>{t("noLabels")}</span>
                     </>
                 )}
-            </AriaButton>
-            <Dropdown.Popover placement="bottom start" className="w-56">
-                <Dropdown.Menu
-                    aria-label={t("labels")}
-                    selectionMode="multiple"
-                    selectedKeys={value}
-                    onSelectionChange={handleSelectionChange}
-                >
-                    {data.labels.map((label) => (
-                        <Dropdown.Item key={label.id} id={label.id} textValue={label.name} selectionIndicator="checkbox">
-                            <span className="flex items-center gap-2">
-                                <LabelDot color={label.color} />
-                                <span className="truncate">{label.name}</span>
-                            </span>
-                        </Dropdown.Item>
-                    ))}
-                </Dropdown.Menu>
-            </Dropdown.Popover>
-        </Dropdown.Root>
+            </Button>
+            <DropdownMenuContent
+                aria-label={t("labels")}
+                placement="bottom start"
+                popoverClassName="w-56"
+                selectionMode="multiple"
+                selectedKeys={value}
+                onSelectionChange={handleSelectionChange}
+            >
+                {data.labels.map((label) => (
+                    <DropdownMenuItem key={label.id} id={label.id} textValue={label.name}>
+                        <span className="flex items-center gap-2">
+                            <LabelDot color={label.color} />
+                            <span className="truncate">{label.name}</span>
+                        </span>
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

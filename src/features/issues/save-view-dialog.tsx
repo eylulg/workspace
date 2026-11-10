@@ -1,12 +1,11 @@
 "use client";
 
+import { Button } from "@eylulg/ui/button";
+import { Dialog } from "@eylulg/ui/dialog";
+import { Input } from "@eylulg/ui/input";
+import { useToast } from "@eylulg/ui/toast";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState, useTransition } from "react";
-import { Heading as AriaHeading } from "react-aria-components";
-import { Dialog, Modal, ModalOverlay } from "@/components/application/modals/modal";
-import { Button } from "@/components/base/buttons/button";
-import { Input } from "@/components/base/input/input";
-import { toastStore } from "@/features/toast/toast-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { type IssueQuery, serializeIssueQuery } from "@/lib/issue-query";
 import { saveView } from "@/server/actions/views";
@@ -18,19 +17,25 @@ interface SaveViewDialogProps {
 }
 
 export function SaveViewDialog({ isOpen, onOpenChange, query }: SaveViewDialogProps) {
+    const t = useTranslations("views");
+    const tc = useTranslations("common");
     return (
-        <ModalOverlay isOpen={isOpen} onOpenChange={onOpenChange} isDismissable>
-            <Modal className="max-w-md">
-                <Dialog aria-labelledby="save-view-title">
-                    {isOpen ? <SaveViewForm query={query} onOpenChange={onOpenChange} /> : null}
-                </Dialog>
-            </Modal>
-        </ModalOverlay>
+        <Dialog
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            size="sm"
+            title={t("saveTitle")}
+            description={t("saveDescription")}
+            closeLabel={tc("close")}
+        >
+            {isOpen ? <SaveViewForm query={query} onOpenChange={onOpenChange} /> : null}
+        </Dialog>
     );
 }
 
 function SaveViewForm({ query, onOpenChange }: Omit<SaveViewDialogProps, "isOpen">) {
     const t = useTranslations();
+    const { toast } = useToast();
     const mounted = useIsMounted();
     const [name, setName] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -44,7 +49,7 @@ function SaveViewForm({ query, onOpenChange }: Omit<SaveViewDialogProps, "isOpen
                 if (mounted.current) setError(t(`errors.${result.error}`));
                 return;
             }
-            toastStore.show({ message: t("views.saved", { name: name.trim() }) });
+            toast({ title: t("views.saved", { name: name.trim() }), variant: "success" });
             onOpenChange(false);
         });
     }
@@ -54,13 +59,7 @@ function SaveViewForm({ query, onOpenChange }: Omit<SaveViewDialogProps, "isOpen
     }
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
-            <div>
-                <AriaHeading slot="title" id="save-view-title" className="text-lg font-semibold text-primary">
-                    {t("views.saveTitle")}
-                </AriaHeading>
-                <p className="mt-1 text-sm text-tertiary">{t("views.saveDescription")}</p>
-            </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Input
                 label={t("views.name")}
                 value={name}
@@ -68,10 +67,10 @@ function SaveViewForm({ query, onOpenChange }: Omit<SaveViewDialogProps, "isOpen
                 isRequired
                 autoFocus
                 isInvalid={error !== null}
-                hint={error ?? undefined}
+                errorMessage={error ?? undefined}
             />
-            <div className="flex justify-end gap-3">
-                <Button color="secondary" onClick={handleCancel}>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <Button variant="secondary" onPress={handleCancel}>
                     {t("common.cancel")}
                 </Button>
                 <Button type="submit" isLoading={isPending}>

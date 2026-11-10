@@ -9,11 +9,11 @@
         "cancel": "Cancel",
         "save": "Save changes",
         "undo": "Undo",
-        "dismiss": "Dismiss notification",
         "notifications": "Notifications",
         "write": "Write",
         "preview": "Preview",
-        "discard": "Discard changes"
+        "discard": "Discard changes",
+        "close": "Close"
     },
     "nav": {
         "main": "Main",
@@ -23,8 +23,6 @@
         "teams": "Teams",
         "savedViews": "Saved views",
         "search": "Open command palette",
-        "openMenu": "Open menu",
-        "closeMenu": "Close menu",
         "shortcuts": "Shortcuts",
         "resetDemo": "Reset demo",
         "resetDemoConfirm": "Reset the demo workspace? Every change made by any visitor is replaced with the starting data.",
@@ -32,9 +30,8 @@
         "demoNotice": "This is a shared demo. Anyone can edit it, and it resets every night.",
         "language": "Language",
         "theme": "Theme",
-        "light": "Light theme",
-        "dark": "Dark theme",
-        "system": "Use system theme"
+        "demoControls": "Demo controls",
+        "projectSwitcher": "Other projects"
     },
     "status": {
         "backlog": "Backlog",
@@ -91,13 +88,13 @@
         "searchLabel": "Search issues",
         "searchPlaceholder": "For example: onboarding",
         "activeFilters": "Active filters",
-        "removeFilter": "Remove filter {filter}",
         "clearFilters": "Clear filters",
         "saveView": "Save view",
         "emptyTitle": "No issues yet",
         "emptyBody": "Create the first issue for this team.",
         "emptyFilteredTitle": "No issues match these filters",
-        "emptyFilteredBody": "Change or clear the filters to see more issues."
+        "emptyFilteredBody": "Change or clear the filters to see more issues.",
+        "identifier": "ID"
     },
     "views": {
         "saveTitle": "Save view",

@@ -1,20 +1,23 @@
 "use client";
 
-import { Edit03, Plus, Trash01 } from "@untitledui/icons";
+import { Button } from "@eylulg/ui/button";
+import { cx } from "@eylulg/ui/cx";
+import { Dialog } from "@eylulg/ui/dialog";
+import { EmptyState } from "@eylulg/ui/empty-state";
+import { IconButton } from "@eylulg/ui/icon-button";
+import { Input } from "@eylulg/ui/input";
+import { PageHeader } from "@eylulg/ui/page-header";
+import { useToast } from "@eylulg/ui/toast";
+import { Tooltip } from "@eylulg/ui/tooltip";
+import { Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState, useTransition } from "react";
-import { Heading as AriaHeading, Radio as AriaRadio, RadioGroup as AriaRadioGroup, Label as AriaLabel } from "react-aria-components";
-import { Dialog, Modal, ModalOverlay } from "@/components/application/modals/modal";
-import { Button } from "@/components/base/buttons/button";
-import { ButtonUtility } from "@/components/base/buttons/button-utility";
-import { Input } from "@/components/base/input/input";
+import { Label as AriaLabel, Radio as AriaRadio, RadioGroup as AriaRadioGroup } from "react-aria-components";
 import { LabelDot } from "@/features/issues/issue-icons";
-import { toastStore } from "@/features/toast/toast-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { Link } from "@/i18n/navigation";
 import { LABEL_COLORS, type Label } from "@/lib/domain";
 import { createLabel, deleteLabel, updateLabel } from "@/server/actions/labels";
-import { cx } from "@/utils/cx";
 
 function ColorPicker({ value, onChange, label }: { value: string; onChange: (color: string) => void; label: string }) {
     return (
@@ -28,9 +31,9 @@ function ColorPicker({ value, onChange, label }: { value: string; onChange: (col
                         aria-label={color}
                         className={({ isSelected, isFocusVisible }) =>
                             cx(
-                                "size-7 cursor-pointer rounded-full ring-offset-2 ring-offset-bg-primary transition",
+                                "size-7 cursor-pointer rounded-full ring-offset-2 ring-offset-(--ui-bg-elevated) transition",
                                 isSelected && "ring-2 ring-fg-primary",
-                                isFocusVisible && "outline-2 outline-offset-4 outline-focus-ring",
+                                isFocusVisible && "outline-2 outline-offset-4 outline-focus",
                             )
                         }
                         style={{ backgroundColor: color }}
@@ -45,6 +48,7 @@ type Editing = { mode: "create" } | { mode: "edit"; label: Label } | null;
 
 export function LabelsManager({ labels, usage }: { labels: Label[]; usage: Record<string, number> }) {
     const t = useTranslations();
+    const { toast } = useToast();
     const [editing, setEditing] = useState<Editing>(null);
     const [deleting, setDeleting] = useState<Label | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -54,10 +58,10 @@ export function LabelsManager({ labels, usage }: { labels: Label[]; usage: Recor
         const label = deleting;
         startTransition(async () => {
             const result = await deleteLabel({ id: label.id });
-            toastStore.show(
+            toast(
                 result.ok
-                    ? { message: t("labels.deleted", { name: label.name }) }
-                    : { message: t(`errors.${result.error}`), tone: "error" },
+                    ? { title: t("labels.deleted", { name: label.name }), variant: "success" }
+                    : { title: t(`errors.${result.error}`), variant: "error" },
             );
             // Only close the dialog if it still shows the label this request deleted.
             setDeleting((current) => (current?.id === label.id ? null : current));
@@ -85,63 +89,59 @@ export function LabelsManager({ labels, usage }: { labels: Label[]; usage: Recor
     }
 
     return (
-        <div className="flex max-w-3xl flex-col gap-6 px-4 py-6 sm:px-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h1 className="text-display-xs font-semibold text-primary">{t("labels.title")}</h1>
-                    <p className="mt-1 text-sm text-tertiary">{t("labels.subtitle")}</p>
-                </div>
-                <Button iconLeading={Plus} onClick={handleCreate}>
-                    {t("labels.new")}
-                </Button>
-            </div>
+        <div className="flex max-w-3xl flex-col gap-6">
+            <PageHeader
+                headingLevel={1}
+                title={t("labels.title")}
+                description={t("labels.subtitle")}
+                actions={
+                    <Button iconLeading={Plus} onPress={handleCreate}>
+                        {t("labels.new")}
+                    </Button>
+                }
+            />
 
             {labels.length === 0 ? (
-                <p className="rounded-xl p-6 text-sm text-tertiary ring-1 ring-secondary">{t("labels.empty")}</p>
+                <EmptyState size="sm" icon={Tag} title={t("labels.empty")} />
             ) : (
-                <ul className="divide-y divide-border-secondary overflow-hidden rounded-xl bg-primary ring-1 ring-secondary">
+                <ul className="divide-y divide-(--ui-border-subtle) overflow-hidden rounded-xl border border-subtle bg-primary">
                     {labels.map((label) => (
                         <LabelRow key={label.id} label={label} count={usage[label.id] ?? 0} onEdit={setEditing} onDelete={setDeleting} />
                     ))}
                 </ul>
             )}
 
-            <ModalOverlay isOpen={editing !== null} onOpenChange={handleEditingOpenChange} isDismissable>
-                <Modal className="max-w-md">
-                    <Dialog aria-labelledby="label-dialog-title">
-                        {editing && (
-                            <LabelForm
-                                key={editing.mode === "edit" ? editing.label.id : "new"}
-                                editing={editing}
-                                onDone={handleCloseEditing}
-                            />
-                        )}
-                    </Dialog>
-                </Modal>
-            </ModalOverlay>
+            <Dialog
+                isOpen={editing !== null}
+                onOpenChange={handleEditingOpenChange}
+                size="sm"
+                title={editing?.mode === "edit" ? t("labels.editTitle") : t("labels.new")}
+                closeLabel={t("common.close")}
+            >
+                {editing && (
+                    <LabelForm key={editing.mode === "edit" ? editing.label.id : "new"} editing={editing} onDone={handleCloseEditing} />
+                )}
+            </Dialog>
 
-            <ModalOverlay isOpen={deleting !== null} onOpenChange={handleDeletingOpenChange} isDismissable>
-                <Modal className="max-w-md">
-                    <Dialog role="alertdialog" aria-labelledby="delete-label-title">
-                        <div className="flex flex-col gap-4 p-6">
-                            <AriaHeading slot="title" id="delete-label-title" className="text-lg font-semibold text-primary">
-                                {t("labels.deleteTitle", { name: deleting?.name ?? "" })}
-                            </AriaHeading>
-                            <p className="text-sm text-tertiary">
-                                {t("labels.deleteBody", { count: deleting ? (usage[deleting.id] ?? 0) : 0 })}
-                            </p>
-                            <div className="flex justify-end gap-3">
-                                <Button color="secondary" onClick={handleCancelDelete}>
-                                    {t("common.cancel")}
-                                </Button>
-                                <Button color="primary-destructive" onClick={handleConfirmDelete} isLoading={isPending}>
-                                    {t("labels.confirmDelete")}
-                                </Button>
-                            </div>
-                        </div>
-                    </Dialog>
-                </Modal>
-            </ModalOverlay>
+            <Dialog
+                isOpen={deleting !== null}
+                onOpenChange={handleDeletingOpenChange}
+                role="alertdialog"
+                size="sm"
+                title={t("labels.deleteTitle", { name: deleting?.name ?? "" })}
+                description={t("labels.deleteBody", { count: deleting ? (usage[deleting.id] ?? 0) : 0 })}
+                closeLabel={t("common.close")}
+                footer={
+                    <>
+                        <Button variant="secondary" onPress={handleCancelDelete}>
+                            {t("common.cancel")}
+                        </Button>
+                        <Button variant="destructive" onPress={handleConfirmDelete} isLoading={isPending}>
+                            {t("labels.confirmDelete")}
+                        </Button>
+                    </>
+                }
+            />
         </div>
     );
 }
@@ -173,18 +173,29 @@ function LabelRow({
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-primary">{label.name}</span>
             <Link
                 href={`/issues?label=${label.id}`}
-                className="rounded-sm text-sm text-tertiary tabular-nums outline-focus-ring hover:text-secondary hover:underline focus-visible:outline-2"
+                className="rounded-sm text-sm text-tertiary tabular-nums outline-focus hover:text-secondary hover:underline focus-visible:outline-2"
             >
                 {t("usage", { count })}
             </Link>
-            <ButtonUtility size="xs" color="tertiary" icon={Edit03} tooltip={t("edit", { name: label.name })} onClick={handleEdit} />
-            <ButtonUtility size="xs" color="tertiary" icon={Trash01} tooltip={t("delete", { name: label.name })} onClick={handleDelete} />
+            <Tooltip content={t("edit", { name: label.name })}>
+                <IconButton icon={Pencil} variant="tertiary" size="sm" aria-label={t("edit", { name: label.name })} onPress={handleEdit} />
+            </Tooltip>
+            <Tooltip content={t("delete", { name: label.name })}>
+                <IconButton
+                    icon={Trash2}
+                    variant="tertiary"
+                    size="sm"
+                    aria-label={t("delete", { name: label.name })}
+                    onPress={handleDelete}
+                />
+            </Tooltip>
         </li>
     );
 }
 
 function LabelForm({ editing, onDone }: { editing: NonNullable<Editing>; onDone: () => void }) {
     const t = useTranslations();
+    const { toast } = useToast();
     const mounted = useIsMounted();
     const [name, setName] = useState(editing.mode === "edit" ? editing.label.name : "");
     const [color, setColor] = useState(editing.mode === "edit" ? editing.label.color : LABEL_COLORS[7]);
@@ -200,16 +211,13 @@ function LabelForm({ editing, onDone }: { editing: NonNullable<Editing>; onDone:
                 if (mounted.current) setError(t(`errors.${result.error}`));
                 return;
             }
-            toastStore.show({ message: t(editing.mode === "edit" ? "labels.updated" : "labels.created", { name: name.trim() }) });
+            toast({ title: t(editing.mode === "edit" ? "labels.updated" : "labels.created", { name: name.trim() }), variant: "success" });
             onDone();
         });
     }
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
-            <AriaHeading slot="title" id="label-dialog-title" className="text-lg font-semibold text-primary">
-                {editing.mode === "edit" ? t("labels.editTitle") : t("labels.new")}
-            </AriaHeading>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Input
                 label={t("labels.name")}
                 value={name}
@@ -217,11 +225,11 @@ function LabelForm({ editing, onDone }: { editing: NonNullable<Editing>; onDone:
                 isRequired
                 autoFocus
                 isInvalid={error !== null}
-                hint={error ?? undefined}
+                errorMessage={error ?? undefined}
             />
             <ColorPicker value={color} onChange={setColor} label={t("labels.color")} />
-            <div className="flex justify-end gap-3">
-                <Button color="secondary" onClick={onDone}>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <Button variant="secondary" onPress={onDone}>
                     {t("common.cancel")}
                 </Button>
                 <Button type="submit" isLoading={isPending}>

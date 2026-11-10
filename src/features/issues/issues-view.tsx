@@ -1,10 +1,11 @@
 "use client";
 
-import { Plus } from "@untitledui/icons";
+import { Button } from "@eylulg/ui/button";
+import { EmptyState } from "@eylulg/ui/empty-state";
+import { PageHeader } from "@eylulg/ui/page-header";
+import { ListChecks, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useOptimistic, useTransition } from "react";
-import { EmptyState } from "@/components/application/empty-state/empty-state";
-import { Button } from "@/components/base/buttons/button";
 import { Board } from "@/features/board/board";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useRouter } from "@/i18n/navigation";
@@ -70,47 +71,40 @@ export function IssuesView({ issues, query }: IssuesViewProps) {
     }
 
     return (
-        <div className="flex flex-col gap-4 px-4 py-6 sm:px-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                    <h1 className="text-display-xs font-semibold text-primary">
-                        {team ? t("issues.teamTitle", { team: team.name }) : t("issues.title")}
-                    </h1>
-                    <p className="mt-1 text-sm text-tertiary" aria-live="polite">
-                        {t("issues.count", { count: optimisticIssues.length })}
-                    </p>
-                </div>
-                <Button iconLeading={Plus} onClick={handleCreate}>
-                    {t("issues.newIssue")}
-                </Button>
-            </div>
+        <div className="flex flex-col gap-4">
+            <PageHeader
+                headingLevel={1}
+                title={team ? t("issues.teamTitle", { team: team.name }) : t("issues.title")}
+                description={<span aria-live="polite">{t("issues.count", { count: optimisticIssues.length })}</span>}
+                actions={
+                    // The top bar has this button from the md breakpoint up.
+                    <Button iconLeading={Plus} onPress={handleCreate} className="md:hidden">
+                        {t("issues.newIssue")}
+                    </Button>
+                }
+            />
 
             <IssueToolbar key={toolbarKey} query={query} onChange={handleQueryChange} />
 
             <div aria-busy={isNavigating} className={isNavigating ? "opacity-70 transition-opacity" : undefined}>
                 {optimisticIssues.length === 0 ? (
-                    <EmptyState size="sm">
-                        <EmptyState.Header pattern="none">
-                            <EmptyState.FeaturedIcon color="gray" />
-                        </EmptyState.Header>
-                        <EmptyState.Content>
-                            <EmptyState.Title>{filtered ? t("issues.emptyFilteredTitle") : t("issues.emptyTitle")}</EmptyState.Title>
-                            <EmptyState.Description>
-                                {filtered ? t("issues.emptyFilteredBody") : t("issues.emptyBody")}
-                            </EmptyState.Description>
-                        </EmptyState.Content>
-                        <EmptyState.Footer>
-                            {filtered ? (
-                                <Button color="secondary" onClick={handleClearFilters}>
+                    <EmptyState
+                        size="sm"
+                        icon={ListChecks}
+                        title={filtered ? t("issues.emptyFilteredTitle") : t("issues.emptyTitle")}
+                        description={filtered ? t("issues.emptyFilteredBody") : t("issues.emptyBody")}
+                        primaryAction={
+                            filtered ? (
+                                <Button variant="secondary" onPress={handleClearFilters}>
                                     {t("issues.clearFilters")}
                                 </Button>
                             ) : (
-                                <Button iconLeading={Plus} onClick={handleCreate}>
+                                <Button iconLeading={Plus} onPress={handleCreate}>
                                     {t("issues.newIssue")}
                                 </Button>
-                            )}
-                        </EmptyState.Footer>
-                    </EmptyState>
+                            )
+                        }
+                    />
                 ) : query.view === "board" ? (
                     <Board
                         issues={sortIssues(optimisticIssues, "manual")}

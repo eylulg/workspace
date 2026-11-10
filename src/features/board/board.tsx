@@ -17,7 +17,10 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DotsGrid } from "@untitledui/icons";
+import { Badge } from "@eylulg/ui/badge";
+import { Card } from "@eylulg/ui/card";
+import { cx } from "@eylulg/ui/cx";
+import { GripVertical } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, startTransition, useRef, useState } from "react";
 import { DueDate } from "@/features/issues/due-date";
@@ -28,7 +31,6 @@ import { Link } from "@/i18n/navigation";
 import { COLUMN_PREFIX, type Columns, anchorFor, columnKeyboardCoordinates, columnOf, projectDrop, toColumns } from "@/lib/board-columns";
 import { type IssueSummary, type Priority, STATUSES, type Status } from "@/lib/domain";
 import type { IssuePatch } from "@/lib/optimistic";
-import { cx } from "@/utils/cx";
 
 interface BoardProps {
     issues: IssueSummary[];
@@ -170,7 +172,7 @@ function BoardColumn({
     const { setNodeRef, isOver } = useDroppable({ id: `${COLUMN_PREFIX}${status}` });
     const headingId = `board-column-${status}`;
     return (
-        <section aria-labelledby={headingId} className="bg-secondary_subtle flex min-w-0 flex-col rounded-xl ring-1 ring-secondary">
+        <section aria-labelledby={headingId} className="flex min-w-0 flex-col rounded-xl border border-subtle bg-secondary">
             <h2 id={headingId} className="flex items-center gap-2 px-3 pt-3 pb-2 text-sm font-semibold text-primary">
                 <StatusIcon status={status} />
                 {t(`status.${status}`)}
@@ -180,10 +182,7 @@ function BoardColumn({
                 <ul
                     ref={setNodeRef}
                     aria-labelledby={headingId}
-                    className={cx(
-                        "flex min-h-24 flex-1 flex-col gap-2 rounded-b-xl px-2 pb-2 transition-colors",
-                        isOver && "bg-primary_hover",
-                    )}
+                    className={cx("flex min-h-24 flex-1 flex-col gap-2 rounded-b-xl px-2 pb-2 transition-colors", isOver && "bg-hover")}
                 >
                     {ids.map((id) => {
                         const issue = byId.get(id);
@@ -198,8 +197,8 @@ function BoardColumn({
 
 function HandleIcon() {
     return (
-        <span className="flex size-7 shrink-0 items-center justify-center text-fg-quaternary">
-            <DotsGrid aria-hidden="true" className="size-4" />
+        <span className="flex size-7 shrink-0 items-center justify-center text-fg-tertiary">
+            <GripVertical aria-hidden="true" className="size-4" />
         </span>
     );
 }
@@ -233,9 +232,9 @@ function SortableCard({ issue, onUpdate }: { issue: IssueSummary; onUpdate: Boar
                         {...attributes}
                         {...listeners}
                         aria-label={t("dragHandle", { identifier: issue.identifier, title: issue.title })}
-                        className="flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-fg-quaternary outline-focus-ring hover:bg-primary_hover hover:text-fg-secondary focus-visible:outline-2 active:cursor-grabbing"
+                        className="flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-fg-tertiary outline-focus hover:bg-hover hover:text-fg-secondary focus-visible:outline-2 active:cursor-grabbing"
                     >
-                        <DotsGrid aria-hidden="true" className="size-4" />
+                        <GripVertical aria-hidden="true" className="size-4" />
                     </button>
                 }
             />
@@ -257,17 +256,17 @@ function CardBody({
     const { data } = useWorkspace();
     const labels = data.labels.filter((label) => issue.labelIds.includes(label.id));
     return (
-        <article className={cx("flex gap-1 rounded-lg bg-primary p-2 shadow-xs ring-1 ring-secondary", isOverlay && "rotate-1 shadow-lg")}>
+        <Card className={cx("flex-row gap-1 p-2", isOverlay && "rotate-1")}>
             {handle}
             <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
-                <span className="text-xs text-tertiary tabular-nums">{issue.identifier}</span>
+                <span className="font-data text-xs text-tertiary tabular-nums">{issue.identifier}</span>
                 {isOverlay ? (
                     <span className="text-sm font-medium text-primary">{issue.title}</span>
                 ) : (
                     <Link
                         href={`/issue/${issue.identifier}`}
                         data-issue-link
-                        className="rounded-sm text-sm font-medium text-primary outline-focus-ring hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                        className="rounded-sm text-sm font-medium text-primary outline-focus hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
                         {issue.title}
                     </Link>
@@ -275,16 +274,16 @@ function CardBody({
                 {labels.length > 0 && (
                     <span className="flex flex-wrap gap-x-2 gap-y-1">
                         {labels.map((label) => (
-                            <span key={label.id} className="inline-flex items-center gap-1 text-xs text-tertiary">
+                            <Badge key={label.id} size="sm">
                                 <LabelDot color={label.color} />
                                 {label.name}
-                            </span>
+                            </Badge>
                         ))}
                     </span>
                 )}
                 <div className="-ml-1.5 flex items-center gap-0.5">{onUpdate ? <CardMenus issue={issue} onUpdate={onUpdate} /> : null}</div>
             </div>
-        </article>
+        </Card>
     );
 }
 

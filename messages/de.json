@@ -9,11 +9,11 @@
         "cancel": "Abbrechen",
         "save": "Änderungen speichern",
         "undo": "Rückgängig",
-        "dismiss": "Benachrichtigung schließen",
         "notifications": "Benachrichtigungen",
         "write": "Schreiben",
         "preview": "Vorschau",
-        "discard": "Änderungen verwerfen"
+        "discard": "Änderungen verwerfen",
+        "close": "Schließen"
     },
     "nav": {
         "main": "Hauptmenü",
@@ -23,8 +23,6 @@
         "teams": "Teams",
         "savedViews": "Gespeicherte Ansichten",
         "search": "Befehlspalette öffnen",
-        "openMenu": "Menü öffnen",
-        "closeMenu": "Menü schließen",
         "shortcuts": "Tastenkürzel",
         "resetDemo": "Demo zurücksetzen",
         "resetDemoConfirm": "Den Demo Workspace zurücksetzen? Alle Änderungen aller Besucher werden durch die Startdaten ersetzt.",
@@ -32,9 +30,8 @@
         "demoNotice": "Dies ist eine geteilte Demo. Alle können sie bearbeiten, und sie wird jede Nacht zurückgesetzt.",
         "language": "Sprache",
         "theme": "Design",
-        "light": "Helles Design",
-        "dark": "Dunkles Design",
-        "system": "Systemdesign verwenden"
+        "demoControls": "Demo-Steuerung",
+        "projectSwitcher": "Weitere Projekte"
     },
     "status": {
         "backlog": "Backlog",
@@ -91,13 +88,13 @@
         "searchLabel": "Vorgänge durchsuchen",
         "searchPlaceholder": "Zum Beispiel: Onboarding",
         "activeFilters": "Aktive Filter",
-        "removeFilter": "Filter {filter} entfernen",
         "clearFilters": "Filter zurücksetzen",
         "saveView": "Ansicht speichern",
         "emptyTitle": "Noch keine Vorgänge",
         "emptyBody": "Lege den ersten Vorgang für dieses Team an.",
         "emptyFilteredTitle": "Keine Vorgänge passen zu diesen Filtern",
-        "emptyFilteredBody": "Ändere oder entferne Filter, um mehr Vorgänge zu sehen."
+        "emptyFilteredBody": "Ändere oder entferne Filter, um mehr Vorgänge zu sehen.",
+        "identifier": "ID"
     },
     "views": {
         "saveTitle": "Ansicht speichern",

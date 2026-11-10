@@ -1,25 +1,11 @@
 "use client";
 
-import {
-    ArrowLeft,
-    Bookmark,
-    Folder,
-    Globe01,
-    Hash01,
-    Keyboard01,
-    LayoutGrid01,
-    List,
-    Moon01,
-    Plus,
-    RefreshCcw01,
-    Sun,
-    Tag01,
-} from "@untitledui/icons";
+import { Kbd } from "@eylulg/ui/kbd";
 import { Command } from "cmdk";
+import { ArrowLeft, Bookmark, Columns3, Folder, Globe, Hash, Keyboard, List, Moon, Plus, RefreshCcw, Sun, Tag } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react";
-import { Dialog, Modal, ModalOverlay } from "@/components/application/modals/modal";
+import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 import { track } from "@/features/analytics/analytics";
 import { PriorityIcon, StatusIcon } from "@/features/issues/issue-icons";
 import { MemberAvatar } from "@/features/issues/member-avatar";
@@ -31,6 +17,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { type Locale, locales } from "@/i18n/routing";
 import { PRIORITIES, STATUSES } from "@/lib/domain";
 import type { IssuePatch } from "@/lib/optimistic";
+import { setTheme } from "./set-theme";
 
 interface ItemProps {
     icon?: ReactNode;
@@ -41,10 +28,13 @@ interface ItemProps {
     shortcut?: string;
 }
 
+const OVERLAY_CLASS =
+    "fixed inset-0 z-50 flex items-start justify-center bg-overlay p-4 pt-[12vh] transition-opacity duration-150 data-entering:opacity-0 data-exiting:opacity-0 motion-reduce:transition-none";
+const MODAL_CLASS = "w-full max-w-xl overflow-hidden rounded-xl border border-subtle bg-elevated text-primary shadow-xl";
 const ITEM_CLASS =
-    "flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-secondary data-[selected=true]:bg-primary_hover data-[selected=true]:text-primary aria-disabled:opacity-50";
+    "flex cursor-pointer items-center gap-3 rounded-sm px-item-x py-item-y text-sm text-primary data-[selected=true]:bg-hover aria-disabled:opacity-50";
 const GROUP_CLASS =
-    "px-1 pb-1 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-tertiary";
+    "px-1 pb-1 [&_[cmdk-group-heading]]:px-item-x [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-tertiary";
 const ICON_CLASS = "size-4";
 
 export function CommandPalette() {
@@ -60,9 +50,9 @@ export function CommandPalette() {
     }
 
     return (
-        <ModalOverlay isOpen={palette.open} onOpenChange={handleOpenChange} isDismissable className="sm:items-start sm:pt-[12vh]">
-            <Modal className="max-w-xl overflow-hidden">
-                <Dialog aria-label={t("label")} className="overflow-hidden">
+        <ModalOverlay isOpen={palette.open} onOpenChange={handleOpenChange} isDismissable className={OVERLAY_CLASS}>
+            <Modal className={MODAL_CLASS}>
+                <Dialog aria-label={t("label")} className="overflow-hidden outline-none">
                     {palette.open ? <PaletteBody initialMode={palette.mode} /> : null}
                 </Dialog>
             </Modal>
@@ -75,7 +65,6 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
     const router = useRouter();
     const pathname = usePathname();
     const locale = useLocale();
-    const { setTheme } = useTheme();
     const { data, issueIndex, activeIssue, closePalette, setCreateOpen, setHelpOpen, updateIssue } = useWorkspace();
     const statusOptions = useStatusOptions();
     const priorityOptions = usePriorityOptions();
@@ -129,13 +118,13 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
 
     return (
         <Command label={t("palette.label")} loop className="flex max-h-[min(70vh,32rem)] flex-col" onKeyDown={handleKeyDown}>
-            <div className="flex items-center gap-2 border-b border-secondary px-4">
+            <div className="flex items-center gap-2 border-b border-subtle px-4">
                 {mode !== "root" && (
                     <button
                         type="button"
                         onClick={handleBack}
                         aria-label={t("palette.back")}
-                        className="rounded-md p-1 text-fg-quaternary outline-focus-ring hover:bg-primary_hover focus-visible:outline-2"
+                        className="rounded-sm p-1 text-fg-tertiary outline-focus hover:bg-hover focus-visible:outline-2"
                     >
                         <ArrowLeft aria-hidden="true" className={ICON_CLASS} />
                     </button>
@@ -145,7 +134,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                     value={search}
                     onValueChange={setSearch}
                     placeholder={placeholder}
-                    className="h-14 w-full bg-transparent text-md text-primary outline-hidden placeholder:text-placeholder"
+                    className="h-14 w-full bg-transparent text-md text-primary outline-none placeholder:text-placeholder"
                 />
             </div>
             <Command.List label={t("palette.results")} className="overflow-y-auto p-1">
@@ -217,9 +206,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                                 </Item>
                                 <Item
                                     value="assign"
-                                    icon={
-                                        <MemberAvatar member={data.members.find((member) => member.id === target.assigneeId)} size="xs" />
-                                    }
+                                    icon={<MemberAvatar member={data.members.find((member) => member.id === target.assigneeId)} />}
                                     shortcut="A"
                                     onSelect={openPage("assignee")}
                                 >
@@ -238,7 +225,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                             </Item>
                             <Item
                                 value={t("palette.shortcuts")}
-                                icon={<Keyboard01 className={ICON_CLASS} />}
+                                icon={<Keyboard className={ICON_CLASS} />}
                                 shortcut="?"
                                 onSelect={run(() => setHelpOpen(true))}
                             >
@@ -253,7 +240,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                             </Item>
                             <Item
                                 value={t("palette.darkTheme")}
-                                icon={<Moon01 className={ICON_CLASS} />}
+                                icon={<Moon className={ICON_CLASS} />}
                                 onSelect={run(() => setTheme("dark"))}
                             >
                                 {t("palette.darkTheme")}
@@ -264,13 +251,13 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                                     <Item
                                         key={item}
                                         value={`${t("palette.language")} ${LOCALE_NAMES[item]}`}
-                                        icon={<Globe01 className={ICON_CLASS} />}
+                                        icon={<Globe className={ICON_CLASS} />}
                                         onSelect={switchLocale(item)}
                                     >
                                         {t("palette.language")} <span lang={item}>{LOCALE_NAMES[item]}</span>
                                     </Item>
                                 ))}
-                            <Item value={t("palette.resetDemo")} icon={<RefreshCcw01 className={ICON_CLASS} />} onSelect={run(resetDemo)}>
+                            <Item value={t("palette.resetDemo")} icon={<RefreshCcw className={ICON_CLASS} />} onSelect={run(resetDemo)}>
                                 {t("palette.resetDemo")}
                             </Item>
                         </Command.Group>
@@ -285,7 +272,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                             </Item>
                             <Item
                                 value={t("palette.goBoard")}
-                                icon={<LayoutGrid01 className={ICON_CLASS} />}
+                                icon={<Columns3 className={ICON_CLASS} />}
                                 onSelect={go("/issues?view=board")}
                             >
                                 {t("palette.goBoard")}
@@ -300,7 +287,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                             </Item>
                             <Item
                                 value={t("palette.goLabels")}
-                                icon={<Tag01 className={ICON_CLASS} />}
+                                icon={<Tag className={ICON_CLASS} />}
                                 shortcut="G L"
                                 onSelect={go("/labels")}
                             >
@@ -310,7 +297,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                                 <Item
                                     key={team.id}
                                     value={`${t("palette.team")} ${team.name} ${team.key}`}
-                                    icon={<Hash01 className={ICON_CLASS} />}
+                                    icon={<Hash className={ICON_CLASS} />}
                                     onSelect={go(`/issues?team=${team.key}`)}
                                 >
                                     {t("palette.teamIssues", { team: team.name })}
@@ -337,7 +324,7 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
                                         icon={<StatusIcon status={issue.status} />}
                                         onSelect={go(`/issue/${issue.identifier}`)}
                                     >
-                                        <span className="mr-2 text-xs text-tertiary tabular-nums">{issue.identifier}</span>
+                                        <span className="mr-2 font-data text-xs text-tertiary tabular-nums">{issue.identifier}</span>
                                         {issue.title}
                                     </Item>
                                 ))}
@@ -353,16 +340,9 @@ function PaletteBody({ initialMode }: { initialMode: PaletteMode }) {
 function Item({ icon, children, onSelect, value, keywords, shortcut }: ItemProps) {
     return (
         <Command.Item value={value} keywords={keywords} onSelect={onSelect} className={ITEM_CLASS}>
-            <span className="flex size-5 shrink-0 items-center justify-center text-fg-quaternary">{icon}</span>
+            <span className="flex size-5 shrink-0 items-center justify-center text-fg-tertiary">{icon}</span>
             <span className="min-w-0 flex-1 truncate">{children}</span>
-            {shortcut && (
-                <kbd
-                    aria-hidden="true"
-                    className="rounded bg-secondary px-1.5 py-0.5 font-body text-xs text-tertiary ring-1 ring-secondary ring-inset"
-                >
-                    {shortcut}
-                </kbd>
-            )}
+            {shortcut && <Kbd keys={shortcut.split(" ")} aria-hidden="true" />}
         </Command.Item>
     );
 }

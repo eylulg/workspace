@@ -1,8 +1,8 @@
 "use client";
 
-import { Calendar } from "@untitledui/icons";
+import { cx } from "@eylulg/ui/cx";
+import { Calendar } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { cx } from "@/utils/cx";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -20,7 +20,7 @@ export function DueDate({ dueDate, status, className }: { dueDate: string | null
         <span
             className={cx(
                 "inline-flex shrink-0 items-center gap-1 text-xs tabular-nums",
-                overdue ? "font-medium text-error-primary" : "text-tertiary",
+                overdue ? "font-medium text-error" : "text-tertiary",
                 className,
             )}
             title={t("dueOn", { date: formatted })}

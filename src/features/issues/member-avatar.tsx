@@ -1,15 +1,5 @@
-import { User01 } from "@untitledui/icons";
+import { User } from "lucide-react";
 import type { Member } from "@/lib/domain";
-import { cx } from "@/utils/cx";
-
-const PALETTE = [
-    "bg-utility-brand-100 text-utility-brand-700",
-    "bg-utility-blue-100 text-utility-blue-700",
-    "bg-utility-pink-100 text-utility-pink-700",
-    "bg-utility-green-100 text-utility-green-700",
-    "bg-utility-orange-100 text-utility-orange-700",
-    "bg-utility-indigo-100 text-utility-indigo-700",
-];
 
 const initialsOf = (name: string) =>
     name
@@ -19,30 +9,21 @@ const initialsOf = (name: string) =>
         .slice(0, 2)
         .toUpperCase();
 
-const hash = (value: string) => [...value].reduce((total, char) => total + char.charCodeAt(0), 0);
-
-/** Initials avatar. Decorative: the member's name is always in the accessible name of the control around it. */
-export const MemberAvatar = ({
-    member,
-    size = "sm",
-    className,
-}: {
-    member: Member | null | undefined;
-    size?: "xs" | "sm";
-    className?: string;
-}) => (
+/**
+ * Initials avatar. Decorative: the member's name is always in the accessible name of the control around it.
+ * The library Avatar renders its initials as text, which axe flags (label-content-name-mismatch) inside a button
+ * named by aria-label, so the initials come from CSS content here.
+ */
+export const MemberAvatar = ({ member }: { member: Member | null | undefined }) => (
     <span
         aria-hidden="true"
-        // Initials come from CSS content so they are not text that competes with the control's accessible name.
         data-initials={member ? initialsOf(member.name) : undefined}
-        className={cx(
-            "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
-            size === "xs" ? "size-5 text-[10px]" : "size-6 text-[11px]",
-            "before:content-[attr(data-initials)]",
-            member ? PALETTE[hash(member.id) % PALETTE.length] : "bg-secondary text-fg-quaternary ring-1 ring-secondary ring-inset",
-            className,
-        )}
+        className={
+            member
+                ? "inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-default bg-brand-subtle text-xs font-semibold text-brand before:content-[attr(data-initials)]"
+                : "inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-default bg-secondary text-fg-tertiary"
+        }
     >
-        {member ? null : <User01 className="size-3.5" />}
+        {member ? null : <User className="size-3.5" />}
     </span>
 );

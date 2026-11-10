@@ -1,7 +1,9 @@
 "use client";
 
+import { Badge } from "@eylulg/ui/badge";
+import { Cell, Column, Row, Table, TableBody, TableHeader } from "@eylulg/ui/table";
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import type { FocusEvent, PointerEvent, ReactNode } from "react";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { Link } from "@/i18n/navigation";
 import { type IssueSummary, PRIORITIES, type Priority, STATUSES, type Status } from "@/lib/domain";
@@ -34,14 +36,11 @@ function GroupHeading({ grouping, groupKey, count, id }: { grouping: Grouping; g
         label = t(`priority.${priority}`);
     } else {
         const member = data.members.find((item) => item.id === groupKey);
-        icon = <MemberAvatar member={member} size="xs" />;
+        icon = <MemberAvatar member={member} />;
         label = member?.name ?? t("issue.unassigned");
     }
     return (
-        <h2
-            id={id}
-            className="bg-secondary_subtle sticky top-0 z-10 flex items-center gap-2 border-b border-secondary px-4 py-2 text-sm font-semibold text-primary"
-        >
+        <h2 id={id} className="flex items-center gap-2 pb-2 text-sm font-semibold text-primary">
             {icon}
             {label}
             <span className="font-normal text-tertiary">{count}</span>
@@ -50,12 +49,9 @@ function GroupHeading({ grouping, groupKey, count, id }: { grouping: Grouping; g
 }
 
 function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProps["onUpdate"] }) {
-    const { data, setActiveIssue } = useWorkspace();
+    const { data } = useWorkspace();
     const labels = data.labels.filter((label) => issue.labelIds.includes(label.id));
 
-    function handleActivate() {
-        setActiveIssue(issue);
-    }
     function handleStatus(status: Status) {
         onUpdate(issue, { status });
     }
@@ -67,55 +63,92 @@ function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProp
     }
 
     return (
-        <li
-            data-issue-row
-            className="flex items-center gap-1 border-b border-secondary px-2 py-1 transition-colors focus-within:bg-primary_hover hover:bg-primary_hover sm:gap-2 sm:px-4"
-            onFocusCapture={handleActivate}
-            onPointerEnter={handleActivate}
-        >
-            <PriorityMenu compact value={issue.priority} onChange={handlePriority} />
-            <span className="hidden w-16 shrink-0 text-xs text-tertiary tabular-nums sm:inline">{issue.identifier}</span>
-            <StatusMenu compact value={issue.status} onChange={handleStatus} />
-            <Link
-                href={`/issue/${issue.identifier}`}
-                data-issue-link
-                className="min-w-0 flex-1 truncate rounded-sm py-1.5 text-sm font-medium text-primary outline-focus-ring hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-                <span className="sr-only sm:hidden">{issue.identifier} </span>
-                {issue.title}
-            </Link>
-            {labels.length > 0 && (
-                <span className="hidden items-center gap-1.5 md:flex">
-                    {labels.map((label) => (
-                        <span
-                            key={label.id}
-                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-secondary ring-1 ring-secondary ring-inset"
-                        >
-                            <LabelDot color={label.color} />
-                            {label.name}
-                        </span>
-                    ))}
-                </span>
-            )}
-            <DueDate dueDate={issue.dueDate} status={issue.status} className="hidden sm:inline-flex" />
-            <AssigneeMenu compact value={issue.assigneeId} onChange={handleAssignee} />
-        </li>
+        <Row id={issue.id} data-issue-row data-issue-id={issue.id}>
+            <Cell>
+                <PriorityMenu compact value={issue.priority} onChange={handlePriority} />
+            </Cell>
+            <Cell className="hidden whitespace-nowrap text-tertiary tabular-nums sm:table-cell">{issue.identifier}</Cell>
+            <Cell>
+                <StatusMenu compact value={issue.status} onChange={handleStatus} />
+            </Cell>
+            <Cell className="w-full max-w-0">
+                <Link
+                    href={`/issue/${issue.identifier}`}
+                    data-issue-link
+                    className="block truncate rounded-sm font-medium text-primary outline-focus hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                    <span className="sr-only sm:hidden">{issue.identifier} </span>
+                    {issue.title}
+                </Link>
+            </Cell>
+            <Cell className="hidden md:table-cell">
+                {labels.length > 0 && (
+                    <span className="flex items-center gap-1.5">
+                        {labels.map((label) => (
+                            <Badge key={label.id} size="sm">
+                                <LabelDot color={label.color} />
+                                {label.name}
+                            </Badge>
+                        ))}
+                    </span>
+                )}
+            </Cell>
+            <Cell className="hidden sm:table-cell">
+                <DueDate dueDate={issue.dueDate} status={issue.status} />
+            </Cell>
+            <Cell>
+                <AssigneeMenu compact value={issue.assigneeId} onChange={handleAssignee} />
+            </Cell>
+        </Row>
     );
 }
 
 export function IssueList({ groups, grouping, onUpdate }: ListProps) {
+    const t = useTranslations();
+    const { setActiveIssue } = useWorkspace();
+    const issuesById = new Map(groups.flatMap((group) => group.issues).map((issue) => [issue.id, issue]));
+
+    // One handler for every row: the row under the pointer or holding focus is the one s, p and a act on.
+    function activate(target: EventTarget) {
+        if (!(target instanceof Element)) return;
+        const id = target.closest<HTMLElement>("[data-issue-id]")?.dataset.issueId;
+        const issue = id ? issuesById.get(id) : undefined;
+        if (issue) setActiveIssue(issue);
+    }
+
+    function handleFocus(event: FocusEvent) {
+        activate(event.target);
+    }
+
+    function handlePointerOver(event: PointerEvent) {
+        activate(event.target);
+    }
+
     return (
-        <div className="overflow-hidden rounded-xl bg-primary ring-1 ring-secondary">
+        // Focus and pointer events from the rows bubble here, so one handler covers every row.
+        <div className="flex flex-col gap-6" onFocusCapture={handleFocus} onPointerOver={handlePointerOver}>
             {groups.map((group) => {
                 const headingId = `group-${group.key}`;
                 return (
                     <section key={group.key} aria-labelledby={grouping === "none" ? undefined : headingId}>
                         <GroupHeading grouping={grouping} groupKey={group.key} count={group.issues.length} id={headingId} />
-                        <ul aria-labelledby={grouping === "none" ? undefined : headingId} className="-mb-px">
-                            {group.issues.map((issue) => (
-                                <IssueRow key={issue.id} issue={issue} onUpdate={onUpdate} />
-                            ))}
-                        </ul>
+                        <Table
+                            aria-label={grouping === "none" ? t("issues.title") : undefined}
+                            aria-labelledby={grouping === "none" ? undefined : headingId}
+                        >
+                            <TableHeader>
+                                <Column>{t("issue.priority")}</Column>
+                                <Column className="hidden sm:table-cell">{t("issues.identifier")}</Column>
+                                <Column>{t("issue.status")}</Column>
+                                <Column isRowHeader>{t("issue.titleLabel")}</Column>
+                                <Column className="hidden md:table-cell">{t("issue.labels")}</Column>
+                                <Column className="hidden sm:table-cell">{t("issue.dueDate")}</Column>
+                                <Column>{t("issue.assignee")}</Column>
+                            </TableHeader>
+                            <TableBody items={group.issues}>
+                                {(issue) => <IssueRow key={issue.id} issue={issue} onUpdate={onUpdate} />}
+                            </TableBody>
+                        </Table>
                     </section>
                 );
             })}

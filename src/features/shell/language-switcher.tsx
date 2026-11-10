@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronSelectorVertical, Globe01 } from "@untitledui/icons";
+import { Button } from "@eylulg/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@eylulg/ui/dropdown-menu";
+import { ChevronsUpDown, Globe } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
-import { Button as AriaButton, type Key } from "react-aria-components";
-import { Dropdown } from "@/components/base/dropdown/dropdown";
+import type { Key } from "react-aria-components";
 import { LOCALE_NAMES, localeName } from "@/i18n/locale-names";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { locales } from "@/i18n/routing";
@@ -23,25 +24,31 @@ export function LanguageSwitcher() {
     }
 
     return (
-        <Dropdown.Root>
-            <AriaButton
+        <DropdownMenu>
+            <Button
+                variant="secondary"
+                size="sm"
+                iconLeading={Globe}
+                iconTrailing={ChevronsUpDown}
                 aria-label={`${t("language")}: ${localeName(locale)}`}
-                className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-semibold text-secondary shadow-xs ring-1 ring-primary outline-focus-ring ring-inset hover:bg-primary_hover focus-visible:outline-2 focus-visible:outline-offset-2 aria-busy:opacity-70"
                 aria-busy={isPending}
+                className="w-full justify-start"
             >
-                <Globe01 aria-hidden="true" className="size-4 text-fg-quaternary" />
-                <span className="flex-1 text-left">{localeName(locale)}</span>
-                <ChevronSelectorVertical aria-hidden="true" className="size-4 text-fg-quaternary" />
-            </AriaButton>
-            <Dropdown.Popover placement="top start" className="w-48">
-                <Dropdown.Menu aria-label={t("language")} selectionMode="single" selectedKeys={[locale]} onAction={handleAction}>
-                    {locales.map((item) => (
-                        <Dropdown.Item key={item} id={item} textValue={LOCALE_NAMES[item]}>
-                            <span lang={item}>{LOCALE_NAMES[item]}</span>
-                        </Dropdown.Item>
-                    ))}
-                </Dropdown.Menu>
-            </Dropdown.Popover>
-        </Dropdown.Root>
+                {localeName(locale)}
+            </Button>
+            <DropdownMenuContent
+                aria-label={t("language")}
+                placement="top start"
+                selectionMode="single"
+                selectedKeys={[locale]}
+                onAction={handleAction}
+            >
+                {locales.map((item) => (
+                    <DropdownMenuItem key={item} id={item} textValue={LOCALE_NAMES[item]}>
+                        <span lang={item}>{LOCALE_NAMES[item]}</span>
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
