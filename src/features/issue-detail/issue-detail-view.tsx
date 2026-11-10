@@ -44,10 +44,12 @@ export function IssueDetailView({ detail, teamKey }: { detail: IssueDetail; team
         ...detail.comments.map((entry) => ({ type: "comment" as const, at: entry.createdAt, entry })),
     ].sort((a, b) => a.at.localeCompare(b.at));
 
-    // s, p and a and the palette act on this issue while the page is open.
+    // s, p and a and the palette act on this issue while the page is open. The effect reads the fields,
+    // not the object: useOptimistic returns a new object on every render while a change is pending.
+    const { id, identifier, title, status, priority, assigneeId, teamId } = issue;
     useEffect(() => {
-        setActiveIssue(issue);
-    }, [issue, setActiveIssue]);
+        setActiveIssue({ id, identifier, title, status, priority, assigneeId, teamId });
+    }, [id, identifier, title, status, priority, assigneeId, teamId, setActiveIssue]);
 
     useEffect(() => () => setActiveIssue(null), [setActiveIssue]);
 
