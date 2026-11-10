@@ -103,7 +103,11 @@ function CreateIssueForm({ teamId, onDone }: { teamId: string; onDone: () => voi
             return;
         }
         startTransition(async () => {
-            const result = await createIssue({ ...draft, teamId, projectId, dueDate: draft.dueDate || null });
+            const result = await createIssue({ ...draft, teamId, projectId, dueDate: draft.dueDate || null }).catch(() => null);
+            if (!result) {
+                toast({ title: t("errors.unknown"), variant: "error" });
+                return;
+            }
             if (!result.ok) {
                 if (mounted.current) setError(t(`errors.${result.error}`));
                 return;

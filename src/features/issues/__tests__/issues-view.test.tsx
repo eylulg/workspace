@@ -9,13 +9,13 @@ import { renderInWorkspace } from "@/test-utils/render";
 import { IssuesView } from "../issues-view";
 
 // Server Actions are the network boundary.
-const updateIssue = vi.hoisted(() => vi.fn());
+const { updateIssue, createIssue } = vi.hoisted(() => ({ updateIssue: vi.fn(), createIssue: vi.fn() }));
 vi.mock("@/server/actions/issues", () => ({
     updateIssue,
     moveIssue: vi.fn(),
     deleteIssue: vi.fn(),
     restoreIssue: vi.fn(),
-    createIssue: vi.fn(),
+    createIssue,
     addComment: vi.fn(),
 }));
 
@@ -73,6 +73,19 @@ describe("IssuesView", () => {
 
         expect(await screen.findByText("That item no longer exists. Reload the page to see the latest data.")).toBeInTheDocument();
         await waitFor(() => expect(screen.getByRole("button", { name: "Status: Todo" })).toBeInTheDocument());
+    });
+
+    it("keeps the create dialog and the typed title when the server fails, and says so", async () => {
+        const user = userEvent.setup();
+        createIssue.mockRejectedValue(new Error("500"));
+        renderList();
+
+        await user.click(screen.getAllByRole("button", { name: "New issue" })[0] as HTMLElement);
+        await user.type(await screen.findByRole("textbox", { name: /Title/ }), "Fix the footer");
+        await user.click(screen.getByRole("button", { name: "Create issue" }));
+
+        expect(await screen.findByText("Something went wrong. Try again in a moment.")).toBeInTheDocument();
+        expect(screen.getByRole("textbox", { name: /Title/ })).toHaveValue("Fix the footer");
     });
 
     it("has no axe violations", async () => {

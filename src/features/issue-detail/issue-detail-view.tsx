@@ -260,7 +260,11 @@ function CommentForm({ issueId }: { issueId: string }) {
             return;
         }
         startTransition(async () => {
-            const result = await addComment({ issueId, body: comment });
+            const result = await addComment({ issueId, body: comment }).catch(() => null);
+            if (!result) {
+                toast({ title: t("errors.unknown"), variant: "error" });
+                return;
+            }
             if (!mounted.current) return;
             if (!result.ok) {
                 setError(t(`errors.${result.error}`));

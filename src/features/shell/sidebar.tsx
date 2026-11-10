@@ -35,11 +35,13 @@ export function Sidebar() {
     function deleteSavedView(view: { id: string; name: string }) {
         return () => {
             startTransition(async () => {
-                const result = await deleteView({ id: view.id });
+                const result = await deleteView({ id: view.id }).catch(() => null);
                 toast(
-                    result.ok
-                        ? { title: t("views.deleted", { name: view.name }), variant: "success" }
-                        : { title: t(`errors.${result.error}`), variant: "error" },
+                    !result
+                        ? { title: t("errors.unknown"), variant: "error" }
+                        : result.ok
+                          ? { title: t("views.deleted", { name: view.name }), variant: "success" }
+                          : { title: t(`errors.${result.error}`), variant: "error" },
                 );
             });
         };

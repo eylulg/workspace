@@ -57,11 +57,13 @@ export function LabelsManager({ labels, usage }: { labels: Label[]; usage: Recor
         if (!deleting) return;
         const label = deleting;
         startTransition(async () => {
-            const result = await deleteLabel({ id: label.id });
+            const result = await deleteLabel({ id: label.id }).catch(() => null);
             toast(
-                result.ok
-                    ? { title: t("labels.deleted", { name: label.name }), variant: "success" }
-                    : { title: t(`errors.${result.error}`), variant: "error" },
+                !result
+                    ? { title: t("errors.unknown"), variant: "error" }
+                    : result.ok
+                      ? { title: t("labels.deleted", { name: label.name }), variant: "success" }
+                      : { title: t(`errors.${result.error}`), variant: "error" },
             );
             // Only close the dialog if it still shows the label this request deleted.
             setDeleting((current) => (current?.id === label.id ? null : current));
@@ -205,8 +207,13 @@ function LabelForm({ editing, onDone }: { editing: NonNullable<Editing>; onDone:
     function handleSubmit(event: FormEvent) {
         event.preventDefault();
         startTransition(async () => {
-            const result =
-                editing.mode === "edit" ? await updateLabel({ id: editing.label.id, name, color }) : await createLabel({ name, color });
+            const result = await (
+                editing.mode === "edit" ? updateLabel({ id: editing.label.id, name, color }) : createLabel({ name, color })
+            ).catch(() => null);
+            if (!result) {
+                toast({ title: t("errors.unknown"), variant: "error" });
+                return;
+            }
             if (!result.ok) {
                 if (mounted.current) setError(t(`errors.${result.error}`));
                 return;

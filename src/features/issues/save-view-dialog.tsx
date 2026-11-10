@@ -44,7 +44,11 @@ function SaveViewForm({ query, onOpenChange }: Omit<SaveViewDialogProps, "isOpen
     function handleSubmit(event: FormEvent) {
         event.preventDefault();
         startTransition(async () => {
-            const result = await saveView({ name, query: serializeIssueQuery(query) });
+            const result = await saveView({ name, query: serializeIssueQuery(query) }).catch(() => null);
+            if (!result) {
+                toast({ title: t("errors.unknown"), variant: "error" });
+                return;
+            }
             if (!result.ok) {
                 if (mounted.current) setError(t(`errors.${result.error}`));
                 return;
