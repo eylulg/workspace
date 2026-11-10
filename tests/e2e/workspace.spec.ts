@@ -21,7 +21,7 @@ test("creates an issue from the command palette", async ({ page }) => {
 });
 
 test("moves an issue to the next column on the board with the keyboard", async ({ page }) => {
-    await page.goto("/en/issues?team=WEB&view=board");
+    await page.goto("/en/issues?team=WEB&view=board", { waitUntil: "networkidle" });
     const handle = page.getByRole("button", { name: /^Move WEB-3 / });
 
     const announcement = page.getByRole("status").filter({ hasText: /WEB-3/ });

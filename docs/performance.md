@@ -39,10 +39,22 @@ CSS is 15.2 kB gzip on every route and did not change. There is no `/en/board` r
 
 ## What is left
 
-- The list scores 78 and its LCP is 4.2 s, against a target of 90. After hydration React Aria's Table removes and recreates its header and body (observed with a MutationObserver at about 130 ms), so the largest contentful paint is the recreated row link and it waits for the JS. The empty state, the board and the other routes have no Table and reach 100. Fixing this needs a change in the component library's Table, which this pass did not touch.
 - The 200 kB gzip JS target is not met. About 130 kB is the framework and React, and React Aria (Table, menus, buttons) is the rest. Menu triggers in every row and in the toolbar need the menu code at hydration, so deferring it needs a lazy trigger pattern in the library.
 - No size-limit entry was added. The Lighthouse budgets in `lighthouserc.json` cap script size per route instead.
 
 ## Budgets in CI
 
-The `performance` job in `ci.yml` builds the app and runs `lhci autorun` against four routes. The board, issue and projects routes must score 0.9 or higher. The list is asserted at 0.7 because it is below target today; raise it when the Table issue above is fixed. CLS must stay under 0.1 on all of them.
+The `performance` job in `ci.yml` builds the app and runs `lhci autorun` against four routes. The board, issue and projects routes must score 0.9 or higher. All four routes must score 0.9 or higher; the list was asserted at 0.7 until the Table recreation after hydration was fixed in the library. CLS must stay under 0.1 on all of them.
+
+## After the library performance pass
+
+Relinked `@eylulg/ui` with the hydration-safe Table and lazy overlays, then measured `/en/issues` with `ONLY=issues node scripts/perf.mjs <dir> <port>` (Lighthouse 13 mobile, three runs, median).
+
+| Route      | Metric       | Before the pass | After the pass  |
+| ---------- | ------------ | --------------- | --------------- |
+| /en/issues | Score (runs) | 78              | 95 (94, 95, 96) |
+| /en/issues | JS gzip (kB) | 323.0           | 301.2           |
+| /en/issues | LCP (ms)     | 4207            | 1054            |
+| /en/issues | CLS / TBT    | 0 / 322 ms      | 0 / 257 ms      |
+
+A `MutationObserver` installed before the page scripts ran, with the page loaded to network idle in Chromium, saw no `THEAD`, `TBODY` or `TR` removed after hydration on `/en/issues` (66 rows present). Before, the header and body were removed and recreated at about 130 ms. The list assertion in `lighthouserc.json` is raised from 0.7 to 0.9 and `lhci autorun` passes on all four routes.

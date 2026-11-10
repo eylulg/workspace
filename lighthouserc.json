@@ -17,7 +17,7 @@
                 {
                     "matchingUrlPattern": "^http://localhost:4802/en/issues$",
                     "assertions": {
-                        "categories:performance": ["error", { "minScore": 0.7 }],
+                        "categories:performance": ["error", { "minScore": 0.9 }],
                         "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
                         "resource-summary:script:size": ["error", { "maxNumericValue": 1200000 }]
                     }
