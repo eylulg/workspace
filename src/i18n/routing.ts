@@ -1,10 +1,10 @@
-import { defineRouting } from "next-intl/routing";
+import { defineRouting } from 'next-intl/routing';
 
-export const locales = ["en", "tr", "de"] as const;
+export const locales = ['en', 'tr', 'de'] as const;
 export type Locale = (typeof locales)[number];
 
 export const routing = defineRouting({
-    locales,
-    defaultLocale: "en",
-    localePrefix: "always",
+  locales,
+  defaultLocale: 'en',
+  localePrefix: 'always',
 });
