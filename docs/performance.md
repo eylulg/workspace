@@ -61,35 +61,46 @@ A `MutationObserver` installed before the page scripts ran, with the page loaded
 
 ## List page on a slow runner
 
-On GitHub's runner `/en/issues` scored about 0.76 against the 0.9 budget while the board, issue and projects routes passed. The runner is slower than a laptop, so the list was measured here with the CI settings (mobile, 4x CPU slowdown) and with `--throttling.cpuSlowdownMultiplier=8`, three runs each against `next start` on an in-memory database. The 8x runs reproduce the runner: 0.82 to 0.86, and 0.53 to 0.62 on the runs that hit the layout shift below.
+On GitHub's runner `/en/issues` scored 0.75 to 0.79 and the board 0.76 to 0.77 against the 0.9 budget, while the issue and projects routes passed. The reports from the runner (`.lighthouseci` saved as a CI artifact) show what a laptop run hides.
 
-### Causes
+### Cause
 
-- **Hydrating 60 rows.** The list is one script evaluation task of about 1.1 s at 8x. Each row is a React Aria row with seven cells and three menu triggers (`MenuTrigger`, button, preload wrapper and the menu content element), about 2,400 DOM nodes and 197 buttons in all. The board, which renders cards lazily, has a TBT of 45 ms at 4x; the list had 290 ms.
-- **Menu triggers.** Replacing the three menus per row with plain icons cut TBT at 4x from about 290 ms to 135 ms, so the menus were about half of the list cost. A plain button in their place recovered most of it.
-- **Footer jump.** The Suspense fallback of the pages was 400 px tall, so the footer was on screen until the page streamed in and pushed it 4,000 px down. On a slow run the first paint is the skeleton, and the shift scored a CLS of 0.44, which takes the performance score down to about 0.55 to 0.62 whatever the TBT is. On a fast run the page arrives before the first paint and nothing shifts, which is why it showed up only some of the time.
-- **Not causes.** Building the option lists once for the whole list instead of once per row changed nothing measurable. Script size is the same on the list and the board, and the list page ships no dnd-kit, Markdown renderer or dialog code.
+Lighthouse loads the page once without throttling and then simulates 4x CPU and slow 4G from that trace. On the runner the observed First Contentful Paint was 0.2 s (the shell: header and sidebar text) and the observed Largest Contentful Paint was 0.5 s (a row title link, or a board card title). Because the content painted after the app scripts had been requested, the simulation counted all of them before LCP: 0.9 s FCP but 3.9 to 4.2 s LCP. On a fast laptop the shell and the rows land in the same first frame, so FCP and LCP are equal and the scripts are not counted. That is why it passed locally and why the projects page also flickered between 0.86 and 0.96 once the timing was slow.
+
+The runner was reproduced locally by running Lighthouse under `taskpolicy -b` (Chrome on the efficiency cores, which has about the CPU speed of the runner's observed run) with the normal 4x simulation. That gave 0.69 on the list, 0.79 to 0.80 on the board and 0.86 to 0.96 on projects, LCP 3.9 to 4.2 s with the same LCP elements as the runner.
+
+The first fix (rendering the rows after hydration) did not touch this. It also made the board worse: a full height skeleton moved the footer when the board arrived (CLS 0.156).
 
 ### What changed
 
-- The menu trigger (`property-menus.tsx`) is a plain button until the first press or arrow key. Then the real menu mounts already open and the button takes focus, so closing the menu returns focus to it as before.
-- The list renders the first 12 rows in the server HTML and while hydrating, then the rest in a transition after hydration (`use-after-hydration.ts`, `limitGroups` in `issue-query.ts`). React renders a transition in short slices, so the remaining rows do not make a long task. Group headings show the full count from the start. The server HTML dropped from about 595 kB to 292 kB raw.
-- The page skeleton is at least one viewport tall (`page-skeleton.tsx`), so the footer stays below the fold until the page arrives.
+- **The first paint waits for the content.** The root layout has `<link rel="expect" href="#page-rendered" blocking="render">` and the list and the board end with `<div id="page-rendered">` (`render-gate.tsx`). The browser holds its first paint until that element is in the document, so FCP and LCP are the same frame and Lighthouse does not count the scripts. Browsers without support ignore the link, and a page without the element is held only until its document has loaded.
+- **The list shows 12 rows and grows as it is scrolled** (`use-growing-limit.ts`, `limitGroups` in `issue-query.ts`). The server HTML and hydration have the first 12 rows. When an element at the end of the list comes within 100 px of the viewport, 12 more rows follow in a low priority update. A phone shows 12 rows and a 1280 px wide window 24 before any scrolling, and scrolling adds the rest. Rendering everything after hydration cost one long task of about 500 ms on the slow setting, and adding rows in timed steps cost more in total, because React Aria renders the whole table again on every step.
+- **The page skeleton is back to its short height.** The full height skeleton shifted the footer on the board.
+- The menu triggers are plain buttons until the first press (`property-menus.tsx`), as before.
 
 ### Results
 
-Median of three runs, Lighthouse 13 mobile, performance category only. Script is the transfer size Lighthouse counts for `resource-summary:script`.
+On the runner-like setup (Lighthouse on the efficiency cores, 4x simulation, three runs):
 
-| Route /en/issues     | Score before | Score after | TBT before | TBT after | LCP before | LCP after | Script before | Script after |
-| -------------------- | ------------ | ----------- | ---------- | --------- | ---------- | --------- | ------------- | ------------ |
-| 4x CPU (CI settings) | 0.94         | 1.00        | 279 ms     | 45 ms     | 1053 ms    | 903 ms    | 301.1 kB      | 301.3 kB     |
-| 8x CPU (like runner) | 0.84         | 0.96        | 619 ms     | 231 ms    | 1055 ms    | 903 ms    | 301.1 kB      | 301.3 kB     |
+| Route                 | Score before          | Score after  | TBT before | TBT after  | LCP before   | LCP after |
+| --------------------- | --------------------- | ------------ | ---------- | ---------- | ------------ | --------- |
+| /en/issues            | 0.69 (all 3)          | 0.91 to 0.93 | 780 to 790 | 320 to 370 | 3.9 s        | 0.9 s     |
+| /en/issues?view=board | 0.79 to 0.80          | 0.92 to 0.94 | 290 to 310 | 290 to 360 | 4.2 s        | 0.9 s     |
+| /en/issue/WEB-12      | 0.99 to 1.00 (runner) | 0.97 to 0.98 | 80 to 150  | 180 to 210 | 0.9 s        | 0.9 s     |
+| /en/projects          | 0.86 to 0.96          | 0.96 to 0.97 | 150 to 235 | 185 to 230 | 0.9 to 4.1 s | 0.9 s     |
 
-The script size is unchanged (+0.2 kB for the new hook). CLS on the list is 0 in every run after the change. Before it was 0 on most runs and 0.44 on some, in both the 4x and 8x series.
+On this machine at the CI settings (4x) and at 8x, median of three:
 
-The other routes did not get worse. At 4x and 8x the board is 1.00 with TBT 7 and 54 ms (was 17 and 78), the issue page 1.00 with 4 and 33 ms (was 4 and 33), and projects 1.00 with 4 and 32 ms (was 5 and 33). `npx lhci autorun` with the unchanged `lighthouserc.json` passes all assertions on port 4802.
+| Route                 | Score 4x | TBT 4x | Score 8x | TBT 8x | Script (gzip) |
+| --------------------- | -------- | ------ | -------- | ------ | ------------- |
+| /en/issues            | 1.00     | 11 ms  | 1.00     | 76 ms  | 301.5 kB      |
+| /en/issues?view=board | 1.00     | 6 ms   | 1.00     | 53 ms  | 321.6 kB      |
+| /en/issue/WEB-12      | 1.00     | 4 ms   | 1.00     | 32 ms  | 371.8 kB      |
+| /en/projects          | 1.00     | 3 ms   | 1.00     | 31 ms  | 306.2 kB      |
+
+`npx lhci autorun` with the unchanged `lighthouserc.json` passes all assertions on port 4802.
 
 ### Left
 
-- The first 12 rows are all that is in the HTML without JavaScript. The rest appears right after hydration.
-- Three menu triggers per row still hydrate as buttons. A trigger that is plain markup until first use would need a change in the library.
+- The margin on the list is about 0.01 to 0.03 on the runner-like setup, which is slower than the runner itself (before the change it gave 780 ms of blocking time on the list where the runner gave 490 to 760). The rest of the blocking time is hydrating the shell and toolbar (the board, which has no rows, blocks for 320 to 430 ms there), so more would have to come from the library's menus and table.
+- Rows after the first screen exist only once scrolled near. Find in page does not see them until then.
