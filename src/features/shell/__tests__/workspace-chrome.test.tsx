@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { IssuesView } from '@/features/issues/issues-view';
 import { parseIssueQuery } from '@/lib/issue-query';
 import { ids, makeIssue } from '@/test-utils/fixtures';
@@ -26,6 +26,16 @@ function renderApp() {
     </WorkspaceChrome>,
   );
 }
+
+// The palette and dialogs load on first use; loading them here keeps that
+// first transform out of each test's wait.
+beforeAll(() =>
+  Promise.all([
+    import('@/features/palette/command-palette'),
+    import('@/features/issues/create-issue-dialog'),
+    import('@/features/shortcuts/shortcuts-dialog'),
+  ]),
+);
 
 beforeEach(() => {
   actions.createIssue.mockReset();
@@ -83,7 +93,8 @@ describe('keyboard shortcuts', () => {
 
     await user.hover(screen.getByRole('link', { name: /Date picker opens off screen/ }));
     await user.keyboard('s');
-    await user.click(await screen.findByRole('menuitem', { name: /In review/ }));
+    // The first open loads the library's menu chunk, which is slow on CI runners.
+    await user.click(await screen.findByRole('menuitem', { name: /In review/ }, { timeout: 5000 }));
 
     expect(actions.updateIssue).toHaveBeenCalledWith({
       id: issue.id,
