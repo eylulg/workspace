@@ -113,7 +113,7 @@ npm run test:e2e        # Playwright against the production build on an in-memor
 - **Flows** (`src/features/**/__tests__`, Testing Library and vitest-axe): optimistic status change and rollback, create with `C` and `Cmd`/`Ctrl` + `Enter`, `S` on a hovered issue, `G` sequences, the palette, delete with undo. Server Actions are stubbed as the network boundary.
 - **End to end** (`tests/e2e`): create an issue from the palette, move a card on the board by keyboard and reload, switch to German, no horizontal scroll at 375 px, and axe on every page in light and dark mode.
 
-Commits follow Conventional Commits, checked by commitlint in a Husky hook; lint-staged formats and lints staged files. CI (`.github/workflows/ci.yml`) checks out `eylulg/ui` next to the repository and builds it before `npm ci`, then runs typecheck, lint, format check, knip, tests, build and the end to end suite, plus a gitleaks secret scan.
+Commit messages are plain sentences in the past tense. lint-staged formats and lints staged files. CI (`.github/workflows/ci.yml`) checks out `eylulg/ui` next to the repository and builds it before `npm ci`, then runs typecheck, lint, format check, knip, tests, build and the end to end suite, plus a gitleaks secret scan.
 
 ## Deploy
 
