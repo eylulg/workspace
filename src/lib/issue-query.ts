@@ -135,6 +135,18 @@ export function groupIssues(issues: IssueSummary[], group: Grouping, memberIds: 
     return keys.map((key) => ({ key, issues: issues.filter((issue) => keyOf(issue) === key) })).filter((item) => item.issues.length > 0);
 }
 
+/** Keeps the first `limit` issues across the groups and drops the groups left empty. */
+export function limitGroups(groups: IssueGroup[], limit: number): IssueGroup[] {
+    let left = limit;
+    return groups
+        .map((group) => {
+            const issues = group.issues.slice(0, left);
+            left -= issues.length;
+            return { ...group, issues };
+        })
+        .filter((group) => group.issues.length > 0);
+}
+
 /** Picks a sort order between two neighbours so a move only updates the moved issue. */
 export function sortOrderBetween(before: number | null, after: number | null): number {
     if (before === null && after === null) return 1000;
