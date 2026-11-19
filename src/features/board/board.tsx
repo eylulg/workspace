@@ -26,6 +26,7 @@ import { type ReactNode, startTransition, useRef, useState } from "react";
 import { DueDate } from "@/features/issues/due-date";
 import { LabelDot, StatusIcon } from "@/features/issues/issue-icons";
 import { AssigneeMenu, PriorityMenu, StatusMenu } from "@/features/issues/property-menus";
+import { RenderGate } from "@/features/shell/render-gate";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Link } from "@/i18n/navigation";
@@ -165,6 +166,7 @@ export function Board({ issues, statuses, onMove, onUpdate }: BoardProps) {
                 ))}
             </div>
             <DragOverlay>{activeIssue ? <CardBody issue={activeIssue} isOverlay handle={<HandleIcon />} /> : null}</DragOverlay>
+            <RenderGate />
         </DndContext>
     );
 }

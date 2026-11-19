@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { act } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { axe } from "vitest-axe";
 import { WorkspaceChrome } from "@/features/shell/workspace-chrome";
@@ -92,5 +93,33 @@ describe("IssuesView", () => {
         const { container } = renderList();
 
         expect(await axe(container)).toHaveNoViolations();
+    });
+
+    it("renders the first rows and adds more when the end of the list comes near", () => {
+        let reveal: (entries: { isIntersecting: boolean }[]) => void = () => {};
+        vi.stubGlobal(
+            "IntersectionObserver",
+            class {
+                constructor(callback: typeof reveal) {
+                    reveal = callback;
+                }
+                observe() {}
+                disconnect() {}
+            },
+        );
+        const many = Array.from({ length: 30 }, (_, index) => makeIssue({ number: index + 1, title: `Issue ${index + 1}` }));
+        renderInWorkspace(
+            <WorkspaceChrome>
+                <IssuesView issues={many} query={parseIssueQuery(new URLSearchParams())} />
+            </WorkspaceChrome>,
+        );
+
+        expect(screen.getAllByRole("row")).toHaveLength(13);
+        expect(screen.getByText("30 issues")).toBeInTheDocument();
+
+        act(() => reveal([{ isIntersecting: true }]));
+
+        expect(screen.getAllByRole("row")).toHaveLength(25);
+        vi.unstubAllGlobals();
     });
 });

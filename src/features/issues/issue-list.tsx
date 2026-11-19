@@ -4,8 +4,9 @@ import { Badge } from "@eylulg/ui/badge";
 import { Cell, Column, Row, Table, TableBody, TableHeader } from "@eylulg/ui/table";
 import { useTranslations } from "next-intl";
 import type { FocusEvent, PointerEvent, ReactNode } from "react";
+import { RenderGate } from "@/features/shell/render-gate";
 import { useWorkspace } from "@/features/workspace/workspace-context";
-import { useAfterHydration } from "@/hooks/use-after-hydration";
+import { useGrowingLimit } from "@/hooks/use-growing-limit";
 import { Link } from "@/i18n/navigation";
 import { type IssueSummary, PRIORITIES, type Priority, STATUSES, type Status } from "@/lib/domain";
 import { type Grouping, type IssueGroup, limitGroups } from "@/lib/issue-query";
@@ -19,8 +20,9 @@ import { AssigneeMenu, PriorityMenu, StatusMenu } from "./property-menus";
 const TIGHT = "px-1! sm:px-cell-x!";
 const TITLE_CELL = "w-full max-w-0 px-1! sm:px-cell-x!";
 
-// Hydrating every row delays the page on a slow device, so the first render holds a screenful and the rest follows.
+// Hydrating and painting every row at once blocks a slow device for a long time, so the list grows as it is scrolled.
 const FIRST_RENDER_ROWS = 12;
+const ROWS_PER_STEP = 12;
 
 interface ListProps {
     groups: IssueGroup[];
@@ -115,8 +117,9 @@ function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProp
 export function IssueList({ groups: allGroups, grouping, onUpdate }: ListProps) {
     const t = useTranslations();
     const { setActiveIssue } = useWorkspace();
-    const hydrated = useAfterHydration();
-    const groups = hydrated ? allGroups : limitGroups(allGroups, FIRST_RENDER_ROWS);
+    const total = allGroups.reduce((sum, group) => sum + group.issues.length, 0);
+    const { limit, sentinelRef } = useGrowingLimit(total, FIRST_RENDER_ROWS, ROWS_PER_STEP);
+    const groups = limitGroups(allGroups, limit);
     const issuesById = new Map(allGroups.flatMap((group) => group.issues).map((issue) => [issue.id, issue]));
 
     // One handler for every row: the row under the pointer or holding focus is the one s, p and a act on.
@@ -168,6 +171,8 @@ export function IssueList({ groups: allGroups, grouping, onUpdate }: ListProps) 
                     </section>
                 );
             })}
+            {limit < total && <div ref={sentinelRef} aria-hidden="true" />}
+            <RenderGate />
         </div>
     );
 }

@@ -5,6 +5,7 @@ import { hasLocale } from "next-intl";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
+import { RenderGateLink } from "@/features/shell/render-gate";
 import { ShellFallback, WorkspaceShell } from "@/features/shell/workspace-shell";
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/providers/providers";
@@ -39,6 +40,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
     return (
         <html lang={locale} suppressHydrationWarning>
             <head>
+                <RenderGateLink />
                 <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
             </head>
             <body className="bg-primary antialiased">
