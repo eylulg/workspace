@@ -1,7 +1,12 @@
 {
-    "printWidth": 140,
-    "tabWidth": 4,
-    "plugins": ["prettier-plugin-tailwindcss"],
-    "tailwindStylesheet": "./src/styles/globals.css",
-    "tailwindFunctions": ["cx", "sortCx"]
+  "printWidth": 100,
+  "tabWidth": 2,
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "./src/styles/globals.css",
+  "tailwindFunctions": ["cx", "sortCx"],
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "bracketSpacing": true,
+  "semi": true,
+  "trailingComma": "all"
 }
