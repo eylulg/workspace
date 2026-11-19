@@ -5,7 +5,7 @@ import { cx } from "@eylulg/ui/cx";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@eylulg/ui/dropdown-menu";
 import { Folder, Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { type KeyboardEvent, type ReactNode, useState } from "react";
 import type { Key, Selection } from "react-aria-components";
 import { useWorkspace } from "@/features/workspace/workspace-context";
 import { PRIORITIES, type Priority, STATUSES, type Status } from "@/lib/domain";
@@ -36,26 +36,50 @@ interface SingleMenuProps extends MenuProps {
 }
 
 function SingleSelectMenu({ label, options, value, onChange, compact, className, isDisabled }: SingleMenuProps) {
+    // A list has a few hundred of these triggers, so each one is a plain button until the first press or arrow key.
+    // Only then does the menu mount, already open.
+    const [armed, setArmed] = useState(false);
     const current = options.find((option) => option.id === value);
 
     function handleAction(key: Key) {
         if (key !== value) onChange(String(key));
     }
 
+    function handleArm() {
+        setArmed(true);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            setArmed(true);
+        }
+    }
+
     if (!current) return null;
 
+    const trigger = (
+        <Button
+            variant="tertiary"
+            size="sm"
+            aria-label={`${label}: ${current.label}`}
+            isDisabled={isDisabled}
+            className={cx(compact && COMPACT_TRIGGER, className)}
+            // The armed button is a new element, so it takes focus back for the menu to return it on close.
+            autoFocus={armed}
+            onPress={armed ? undefined : handleArm}
+            onKeyDown={armed ? undefined : handleKeyDown}
+        >
+            {current.icon}
+            {!compact && <span className="truncate">{current.label}</span>}
+        </Button>
+    );
+
+    if (!armed) return trigger;
+
     return (
-        <DropdownMenu>
-            <Button
-                variant="tertiary"
-                size="sm"
-                aria-label={`${label}: ${current.label}`}
-                isDisabled={isDisabled}
-                className={cx(compact && COMPACT_TRIGGER, className)}
-            >
-                {current.icon}
-                {!compact && <span className="truncate">{current.label}</span>}
-            </Button>
+        <DropdownMenu defaultOpen>
+            {trigger}
             <DropdownMenuContent
                 aria-label={label}
                 placement="bottom start"
