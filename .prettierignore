@@ -8,3 +8,4 @@ package-lock.json
 .pglite*
 docs/perf/**/*.json
 .lighthouseci
+results.sarif
