@@ -5,9 +5,10 @@ import { Cell, Column, Row, Table, TableBody, TableHeader } from "@eylulg/ui/tab
 import { useTranslations } from "next-intl";
 import type { FocusEvent, PointerEvent, ReactNode } from "react";
 import { useWorkspace } from "@/features/workspace/workspace-context";
+import { useAfterHydration } from "@/hooks/use-after-hydration";
 import { Link } from "@/i18n/navigation";
 import { type IssueSummary, PRIORITIES, type Priority, STATUSES, type Status } from "@/lib/domain";
-import type { Grouping, IssueGroup } from "@/lib/issue-query";
+import { type Grouping, type IssueGroup, limitGroups } from "@/lib/issue-query";
 import type { IssuePatch } from "@/lib/optimistic";
 import { DueDate } from "./due-date";
 import { LabelDot, PriorityIcon, StatusIcon } from "./issue-icons";
@@ -17,6 +18,9 @@ import { AssigneeMenu, PriorityMenu, StatusMenu } from "./property-menus";
 // Phone rows give the space to the title: tight cell padding and a title that wraps onto a second line.
 const TIGHT = "px-1! sm:px-cell-x!";
 const TITLE_CELL = "w-full max-w-0 px-1! sm:px-cell-x!";
+
+// Hydrating every row delays the page on a slow device, so the first render holds a screenful and the rest follows.
+const FIRST_RENDER_ROWS = 12;
 
 interface ListProps {
     groups: IssueGroup[];
@@ -108,10 +112,12 @@ function IssueRow({ issue, onUpdate }: { issue: IssueSummary; onUpdate: ListProp
     );
 }
 
-export function IssueList({ groups, grouping, onUpdate }: ListProps) {
+export function IssueList({ groups: allGroups, grouping, onUpdate }: ListProps) {
     const t = useTranslations();
     const { setActiveIssue } = useWorkspace();
-    const issuesById = new Map(groups.flatMap((group) => group.issues).map((issue) => [issue.id, issue]));
+    const hydrated = useAfterHydration();
+    const groups = hydrated ? allGroups : limitGroups(allGroups, FIRST_RENDER_ROWS);
+    const issuesById = new Map(allGroups.flatMap((group) => group.issues).map((issue) => [issue.id, issue]));
 
     // One handler for every row: the row under the pointer or holding focus is the one s, p and a act on.
     function activate(target: EventTarget) {
@@ -136,7 +142,12 @@ export function IssueList({ groups, grouping, onUpdate }: ListProps) {
                 const headingId = `group-${group.key}`;
                 return (
                     <section key={group.key} aria-labelledby={grouping === "none" ? undefined : headingId}>
-                        <GroupHeading grouping={grouping} groupKey={group.key} count={group.issues.length} id={headingId} />
+                        <GroupHeading
+                            grouping={grouping}
+                            groupKey={group.key}
+                            count={allGroups.find((item) => item.key === group.key)?.issues.length ?? 0}
+                            id={headingId}
+                        />
                         <Table
                             aria-label={grouping === "none" ? t("issues.title") : undefined}
                             aria-labelledby={grouping === "none" ? undefined : headingId}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeIssue, workspaceData } from "@/test-utils/fixtures";
-import { filterIssues, groupIssues, parseIssueQuery, serializeIssueQuery, sortIssues, sortOrderBetween } from "../issue-query";
+import { filterIssues, groupIssues, limitGroups, parseIssueQuery, serializeIssueQuery, sortIssues, sortOrderBetween } from "../issue-query";
 
 describe("parseIssueQuery", () => {
     it("drops values it does not know and falls back to defaults", () => {
@@ -84,5 +84,19 @@ describe("sortOrderBetween", () => {
         [1000, 2000, 1500],
     ])("between %s and %s is %s", (before, after, expected) => {
         expect(sortOrderBetween(before, after)).toBe(expected);
+    });
+});
+
+describe("limitGroups", () => {
+    it("keeps the first issues across groups and drops the groups left empty", () => {
+        const issues = [
+            makeIssue({ number: 1, status: "backlog" }),
+            makeIssue({ number: 2, status: "backlog" }),
+            makeIssue({ number: 3, status: "done" }),
+        ];
+
+        const groups = limitGroups(groupIssues(issues, "status", []), 1);
+
+        expect(groups.map((group) => [group.key, group.issues.length])).toEqual([["backlog", 1]]);
     });
 });
