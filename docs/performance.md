@@ -58,3 +58,38 @@ Relinked `@eylulg/ui` with the hydration-safe Table and lazy overlays, then meas
 | /en/issues | CLS / TBT    | 0 / 322 ms      | 0 / 257 ms      |
 
 A `MutationObserver` installed before the page scripts ran, with the page loaded to network idle in Chromium, saw no `THEAD`, `TBODY` or `TR` removed after hydration on `/en/issues` (66 rows present). Before, the header and body were removed and recreated at about 130 ms. The list assertion in `lighthouserc.json` is raised from 0.7 to 0.9 and `lhci autorun` passes on all four routes.
+
+## List page on a slow runner
+
+On GitHub's runner `/en/issues` scored about 0.76 against the 0.9 budget while the board, issue and projects routes passed. The runner is slower than a laptop, so the list was measured here with the CI settings (mobile, 4x CPU slowdown) and with `--throttling.cpuSlowdownMultiplier=8`, three runs each against `next start` on an in-memory database. The 8x runs reproduce the runner: 0.82 to 0.86, and 0.53 to 0.62 on the runs that hit the layout shift below.
+
+### Causes
+
+- **Hydrating 60 rows.** The list is one script evaluation task of about 1.1 s at 8x. Each row is a React Aria row with seven cells and three menu triggers (`MenuTrigger`, button, preload wrapper and the menu content element), about 2,400 DOM nodes and 197 buttons in all. The board, which renders cards lazily, has a TBT of 45 ms at 4x; the list had 290 ms.
+- **Menu triggers.** Replacing the three menus per row with plain icons cut TBT at 4x from about 290 ms to 135 ms, so the menus were about half of the list cost. A plain button in their place recovered most of it.
+- **Footer jump.** The Suspense fallback of the pages was 400 px tall, so the footer was on screen until the page streamed in and pushed it 4,000 px down. On a slow run the first paint is the skeleton, and the shift scored a CLS of 0.44, which takes the performance score down to about 0.55 to 0.62 whatever the TBT is. On a fast run the page arrives before the first paint and nothing shifts, which is why it showed up only some of the time.
+- **Not causes.** Building the option lists once for the whole list instead of once per row changed nothing measurable. Script size is the same on the list and the board, and the list page ships no dnd-kit, Markdown renderer or dialog code.
+
+### What changed
+
+- The menu trigger (`property-menus.tsx`) is a plain button until the first press or arrow key. Then the real menu mounts already open and the button takes focus, so closing the menu returns focus to it as before.
+- The list renders the first 12 rows in the server HTML and while hydrating, then the rest in a transition after hydration (`use-after-hydration.ts`, `limitGroups` in `issue-query.ts`). React renders a transition in short slices, so the remaining rows do not make a long task. Group headings show the full count from the start. The server HTML dropped from about 595 kB to 292 kB raw.
+- The page skeleton is at least one viewport tall (`page-skeleton.tsx`), so the footer stays below the fold until the page arrives.
+
+### Results
+
+Median of three runs, Lighthouse 13 mobile, performance category only. Script is the transfer size Lighthouse counts for `resource-summary:script`.
+
+| Route /en/issues     | Score before | Score after | TBT before | TBT after | LCP before | LCP after | Script before | Script after |
+| -------------------- | ------------ | ----------- | ---------- | --------- | ---------- | --------- | ------------- | ------------ |
+| 4x CPU (CI settings) | 0.94         | 1.00        | 279 ms     | 45 ms     | 1053 ms    | 903 ms    | 301.1 kB      | 301.3 kB     |
+| 8x CPU (like runner) | 0.84         | 0.96        | 619 ms     | 231 ms    | 1055 ms    | 903 ms    | 301.1 kB      | 301.3 kB     |
+
+The script size is unchanged (+0.2 kB for the new hook). CLS on the list is 0 in every run after the change. Before it was 0 on most runs and 0.44 on some, in both the 4x and 8x series.
+
+The other routes did not get worse. At 4x and 8x the board is 1.00 with TBT 7 and 54 ms (was 17 and 78), the issue page 1.00 with 4 and 33 ms (was 4 and 33), and projects 1.00 with 4 and 32 ms (was 5 and 33). `npx lhci autorun` with the unchanged `lighthouserc.json` passes all assertions on port 4802.
+
+### Left
+
+- The first 12 rows are all that is in the HTML without JavaScript. The rest appears right after hydration.
+- Three menu triggers per row still hydrate as buttons. A trigger that is plain markup until first use would need a change in the library.
