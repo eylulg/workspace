@@ -43,12 +43,11 @@
       "system": "Sistem teması"
     },
     "siteFooter": {
-      "intro": "Eylül Güneş'in projelerinden biri",
       "projectsNav": "Projeler",
-      "source": "(kaynak)",
       "profilesNav": "Profiller",
       "github": "GitHub",
       "linkedin": "LinkedIn",
+      "codeNote": "Her projenin kodu GitHub'da.",
       "builtWith": "@eylulg/ui ile geliştirildi"
     }
   },

@@ -45,12 +45,11 @@ export async function WorkspaceShell({ children }: { children: ReactNode }) {
             <SiteFooter
               currentId='workspace'
               labels={{
-                intro: tf('intro'),
                 projectsNav: tf('projectsNav'),
-                source: tf('source'),
                 profilesNav: tf('profilesNav'),
                 github: tf('github'),
                 linkedin: tf('linkedin'),
+                codeNote: tf('codeNote'),
                 builtWith: tf('builtWith'),
               }}
             />

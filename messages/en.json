@@ -43,12 +43,11 @@
       "system": "System theme"
     },
     "siteFooter": {
-      "intro": "Part of Eylül Güneş's projects",
       "projectsNav": "Projects",
-      "source": "(source)",
       "profilesNav": "Profiles",
       "github": "GitHub",
       "linkedin": "LinkedIn",
+      "codeNote": "Every project's code is on GitHub.",
       "builtWith": "Built with @eylulg/ui"
     }
   },
