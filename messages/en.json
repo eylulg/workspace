@@ -42,12 +42,6 @@
       "dark": "Dark theme",
       "system": "System theme"
     },
-    "projectSwitcher": {
-      "label": "Other projects",
-      "heading": "Eylül Güneş's projects",
-      "youAreHere": "You are here",
-      "sourceCode": "(source code)"
-    },
     "siteFooter": {
       "intro": "Part of Eylül Güneş's projects",
       "projectsNav": "Projects",

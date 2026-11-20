@@ -42,12 +42,6 @@
       "dark": "Koyu tema",
       "system": "Sistem teması"
     },
-    "projectSwitcher": {
-      "label": "Diğer projeler",
-      "heading": "Eylül Güneş'in projeleri",
-      "youAreHere": "Buradasınız",
-      "sourceCode": "(kaynak kodu)"
-    },
     "siteFooter": {
       "intro": "Eylül Güneş'in projelerinden biri",
       "projectsNav": "Projeler",

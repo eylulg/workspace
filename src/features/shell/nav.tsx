@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@eylulg/ui/button';
-import { ProjectSwitcher, ThemeToggle, TopNav } from '@eylulg/ui/chrome';
+import { ThemeToggle, TopNav } from '@eylulg/ui/chrome';
 import { IconButton } from '@eylulg/ui/icon-button';
 import { Plus, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -10,7 +10,7 @@ import { useWorkspace } from '@/features/workspace/workspace-context';
 import { Link } from '@/i18n/navigation';
 import { Sidebar } from './sidebar';
 
-/** Top bar: the product, the create button, search, the project switcher and the theme toggle, which stays in the bar at 375px. */
+/** Top bar: the product, the create button, search and the theme toggle, which stays in the bar at 375px. */
 export function Nav() {
   const t = useTranslations();
   const themeLabels = {
@@ -48,15 +48,6 @@ export function Nav() {
           <Button size='sm' iconLeading={Plus} onPress={handleCreate}>
             {t('issues.newIssue')}
           </Button>
-          <ProjectSwitcher
-            currentId='workspace'
-            labels={{
-              label: t('chrome.projectSwitcher.label'),
-              heading: t('chrome.projectSwitcher.heading'),
-              youAreHere: t('chrome.projectSwitcher.youAreHere'),
-              sourceCode: t('chrome.projectSwitcher.sourceCode'),
-            }}
-          />
           <ThemeToggle compact labels={themeLabels} />
         </>
       }
