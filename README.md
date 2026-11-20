@@ -119,11 +119,11 @@ Commit messages are plain sentences in the past tense. lint-staged formats and l
 
 The target is Vercel with a Neon Postgres database.
 
-Vercel cannot resolve the `file:../ui` dependency, because the library is not part of this repository. Until `@eylulg/ui` is published to npm, deploy from a machine that has both folders, or publish the library first, then change the dependency in `package.json` to `"@eylulg/ui": "^1.0.0"` and remove the library steps from CI. Nothing else in the app changes.
+`vercel.json` sets the install command (`scripts/vercel-install.sh`). It clones `eylulg/ui` into `.ui`, builds it and points `@eylulg/ui` at it for that build only, so Vercel needs nothing but this repository. Remove that script when the library is on npm and the dependency is `^1.0.0`.
 
-1. Create a Neon project and copy the pooled connection string.
-2. Import the repository in Vercel and set the environment variables below.
-3. From your machine, with `DATABASE_URL` set to the Neon string, run `npm run db:migrate`.
+1. Create a Neon project and copy the pooled connection string (it ends in `?sslmode=require`).
+2. Create the Vercel project from this repository (framework Next.js, Node 24, no other settings) and set the environment variables below.
+3. From your machine, once: `DATABASE_URL='<neon string>' npm run db:migrate`. It is safe to run again. There is no seed step: every visitor gets a copy of the demo on their first request.
 4. Deploy. `vercel.json` schedules `GET /api/cron/cleanup-demo` every night at 03:00 UTC, which deletes visitor copies older than a day.
 
 | Variable                   | Required | Purpose                                                        |
