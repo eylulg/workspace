@@ -44,7 +44,7 @@ Vercel with a Neon Postgres database.
 3. Once, from your machine: `DATABASE_URL='<neon string>' npm run db:migrate`.
 4. Deploy. `vercel.json` runs `/api/cron/cleanup-demo` every night at 03:00 UTC.
 
-`scripts/vercel-install.sh` clones and builds `eylulg/ui` during the Vercel install, because the library is not on npm yet.
+`scripts/vercel-install.sh` clones and builds `eylulg/ui` from its main branch during the Vercel install, so the app uses the latest library code before it is released to npm.
 
 | Variable                   | Required | Purpose                                         |
 | -------------------------- | -------- | ----------------------------------------------- |
