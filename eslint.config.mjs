@@ -52,6 +52,7 @@ export default defineConfig([
   },
   globalIgnores([
     '.next/**',
+    '.ui/**',
     'out/**',
     'build/**',
     'coverage/**',

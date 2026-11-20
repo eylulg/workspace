@@ -77,7 +77,7 @@
   "license": "MIT",
   "author": "Eylül Güneş",
   "engines": {
-    "node": ">=24"
+    "node": "24.x"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs}": [

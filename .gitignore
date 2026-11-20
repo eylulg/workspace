@@ -9,7 +9,7 @@
 /playwright/.cache
 
 # next.js
-/.next/
+.next/
 /out/
 
 # local database (PGlite)
@@ -35,3 +35,6 @@ next-env.d.ts
 AGENTS.md
 /.lighthouseci
 results.sarif
+
+# component library cloned by scripts/vercel-install.sh
+/.ui

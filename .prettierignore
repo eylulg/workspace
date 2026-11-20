@@ -9,3 +9,4 @@ package-lock.json
 docs/perf/**/*.json
 .lighthouseci
 results.sarif
+.ui

@@ -1,4 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "sh scripts/vercel-install.sh",
   "crons": [{ "path": "/api/cron/cleanup-demo", "schedule": "0 3 * * *" }]
 }
