@@ -42,19 +42,12 @@
       "dark": "Dunkles Design",
       "system": "Systemdesign"
     },
-    "projectSwitcher": {
-      "label": "Weitere Projekte",
-      "heading": "Projekte von Eylül Güneş",
-      "youAreHere": "Sie sind hier",
-      "sourceCode": "(Quellcode)"
-    },
     "siteFooter": {
-      "intro": "Teil der Projekte von Eylül Güneş",
       "projectsNav": "Projekte",
-      "source": "(Quellcode)",
       "profilesNav": "Profile",
       "github": "GitHub",
       "linkedin": "LinkedIn",
+      "codeNote": "Der Code jedes Projekts liegt auf GitHub.",
       "builtWith": "Gebaut mit @eylulg/ui"
     }
   },
